@@ -114,6 +114,9 @@ windowControlKeyboardChanged(std::shared_ptr<tygra::Window> window,
 	case tygra::kWindowKeyF5:
 		view_->CompileShaders();
 		break;
+	case tygra::kWindowKeyF6:
+		view_->EnableSpikey();
+		break; 
 		// TODO: put usual keypress responses here
 	}
 }

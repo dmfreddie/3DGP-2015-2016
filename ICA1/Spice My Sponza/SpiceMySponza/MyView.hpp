@@ -20,8 +20,10 @@ public:
     void
     setScene(std::shared_ptr<const SceneModel::Context> scene);
 	void CompileShaders();
+	void EnableSpikey();
 private:
 
+	
 	
 	void LoadTexture(std::string textureName, GLuint texture);
 
@@ -45,7 +47,7 @@ private:
 	GLuint hex2Texture;
 	GLuint hex3Texture;
 	GLuint first_program_;
-
+	GLuint spikey_program_;
 	/*GLuint blockIndex;
 	GLint blockSize;
 	GLubyte * blockBuffer;
@@ -85,8 +87,11 @@ private:
 	};
 
 	GLuint vertex_shader;
-	//GLuint geometary_shader;
 	GLuint fragment_shader;
+
+	GLuint spikeyvertex_shader;
+	GLuint spikeyfragment_shader;
+	GLuint geometary_shader;
 
 	std::map<SceneModel::MeshId, MeshGL> meshes_;
 	int windowWidth, windowHeight = 0;
@@ -100,4 +105,6 @@ private:
 	RenderMode_ currentRenderMode = RenderMode_::Face;
     
 	std::unordered_map<std::string, GLuint> textures;
+
+	bool spikey = false;
 };
