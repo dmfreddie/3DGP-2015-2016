@@ -22,8 +22,9 @@ public:
 	void CompileShaders();
 	void EnableSpikey();
 private:
+	void CompileShader(std::string shaderFileName, GLenum shaderType, GLuint& shaderVariable);
 
-	
+	std::string GenerateUniforms(GLuint program, std::string name_){}
 	
 	void LoadTexture(std::string textureName, GLuint texture);
 
@@ -105,6 +106,6 @@ private:
 	RenderMode_ currentRenderMode = RenderMode_::Face;
     
 	std::unordered_map<std::string, GLuint> textures;
-
+	std::unordered_map<std::string, GLuint> uniforms;
 	bool spikey = false;
 };

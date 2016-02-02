@@ -1,6 +1,10 @@
-﻿Build started 28/01/2016 10:51:40.
-     1>Project "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\tgl\tgl.vcxproj" on node 2 (Build target(s)).
-     1>Lib:
+﻿Build started 02/02/2016 21:30:36.
+     1>Project "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\tgl\tgl.vcxproj" on node 2 (Rebuild target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Iinclude /I"U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external/include" /Zi /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D TGL_EXPORTS /D _UNICODE /D UNICODE /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"build\Debug\\" /Fd"lib\Win32\v120\Debug\tgl.pdb" /Gd /TC /analyze- /errorReport:prompt src\tgl.c
+         tgl.c
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\Lib.exe /OUT:"lib\Win32\v120\Debug\tgl.lib" /NOLOGO build\Debug\tgl.obj
          tgl.vcxproj -> U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\tgl\lib\Win32\v120\Debug\tgl.lib
        PostBuildEvent:
          xcopy /E /S /I /Y "doc" "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\doc"
@@ -242,8 +246,8 @@
          lib\Win32\v120\Debug\tgl.pdb
          lib\Win32\v120\Debug\tgl.lib
          2 File(s) copied
-     1>Done Building Project "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\tgl\tgl.vcxproj" (Build target(s)).
+     1>Done Building Project "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\tgl\tgl.vcxproj" (Rebuild target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:42.78
+Time Elapsed 00:00:24.96

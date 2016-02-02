@@ -45,27 +45,33 @@ void main(void)
 		vec3 L = normalize(LightSource[i].position - vertexPos);
 		float dist = distance(LightSource[i].position, vertexPos);
 		att = 1-smoothstep(0.0, LightSource[i].range, dist);
-		diffuse_intensity = max(0, dot(L, N)) * att;
 		
-		if(is_vertex_shiney > 0 && diffuse_intensity > 0)
+		if (att > 0)
 		{
-			vec3 lightReflection = normalize(reflect(L, normal));
-			float specularFactor = dot(vertexToEye, lightReflection);
-		
-			if (specularFactor > 0)
+
+			diffuse_intensity = max(0, dot(L, N)) * att;
+
+			if (is_vertex_shiney > 0 && diffuse_intensity > 0)
 			{
-				specularFactor = pow(specularFactor, vertex_shininess)* att;
-				specularColour = LightSource[i].intensity *  vertex_spec_colour * specularFactor  /** texture2D(specular_texture, text_coord).rgb*/;
-				col += LightSource[i].intensity * diffuse_intensity * vertex_ambient_colour * specularColour;
+				vec3 lightReflection = normalize(reflect(L, N));
+				float specularFactor = max(0.0, dot(vertexToEye, lightReflection));
+
+				if (specularFactor > 0)
+				{
+					specularFactor = pow(specularFactor, vertex_shininess);
+					specularColour = LightSource[i].intensity *  vertex_spec_colour * specularFactor  /** texture2D(specular_texture, text_coord).rgb*/;
+					col += LightSource[i].intensity * diffuse_intensity * vertex_ambient_colour * (specularColour * 5) * att;
+				}
+				else
+				{
+					col += LightSource[i].intensity * diffuse_intensity * vertex_ambient_colour;
+				}
 			}
 			else
 			{
-				col += LightSource[i].intensity * diffuse_intensity * vertex_ambient_colour ;
+				col += LightSource[i].intensity * diffuse_intensity * vertex_ambient_colour;
 			}
-		}
-		else
-		{
-			col += LightSource[i].intensity * diffuse_intensity * vertex_ambient_colour;
+
 		}
 	}
 
