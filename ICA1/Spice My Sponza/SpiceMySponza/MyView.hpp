@@ -7,6 +7,7 @@
 #include <vector>
 #include <memory>
 #include <map>
+#include <unordered_map>
 
 class MyView : public tygra::WindowViewDelegate
 {
@@ -84,6 +85,7 @@ private:
 	};
 
 	GLuint vertex_shader;
+	//GLuint geometary_shader;
 	GLuint fragment_shader;
 
 	std::map<SceneModel::MeshId, MeshGL> meshes_;
@@ -97,4 +99,5 @@ private:
 	};
 	RenderMode_ currentRenderMode = RenderMode_::Face;
     
+	std::unordered_map<std::string, GLuint> textures;
 };

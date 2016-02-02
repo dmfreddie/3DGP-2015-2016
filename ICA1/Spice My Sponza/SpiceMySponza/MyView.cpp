@@ -44,6 +44,20 @@ void MyView::CompileShaders()
 		glGetShaderInfoLog(vertex_shader, string_length, NULL, log);
 		std::cerr << log << std::endl;
 	}
+/*
+	geometary_shader = glCreateShader(GL_GEOMETRY_SHADER);
+	std::string geometary_shader_string = tygra::stringFromFile("sponza_gs.glsl");
+	const char *geometary_shader_code = geometary_shader_string.c_str();
+	glShaderSource(geometary_shader, 1,
+		(const GLchar **)&geometary_shader_code, NULL);
+	glCompileShader(geometary_shader);
+	glGetShaderiv(geometary_shader, GL_COMPILE_STATUS, &compile_status);
+	if (compile_status != GL_TRUE) {
+		const int string_length = 1024;
+		GLchar log[string_length] = "";
+		glGetShaderInfoLog(geometary_shader, string_length, NULL, log);
+		std::cerr << log << std::endl;
+	}*/
 
 	fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 	std::string fragment_shader_string = tygra::stringFromFile("sponza_fs.glsl");
@@ -171,9 +185,9 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 	glBindVertexArray(0);
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	//LoadTexture("spec1.png", hexTexture);
-
-	tygra::Image texture_image = tygra::imageFromPNG("spec0.png");
+	LoadTexture("spec1.png", hex2Texture);
+	LoadTexture("spec0.png", hexTexture);
+	/*tygra::Image texture_image = tygra::imageFromPNG("spec0.png");
 	if (texture_image.containsData()) {
 		glGenTextures(1, &hexTexture);
 		glBindTexture(GL_TEXTURE_2D, hexTexture);
@@ -195,9 +209,11 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
+	textures["spec0.png"] = hexTexture;*/
 
-	//LoadTexture("diff1.png", hex1Texture);
-	texture_image = tygra::imageFromPNG("spec1.png");
+	LoadTexture("diff1.png", hex1Texture);
+	LoadTexture("diff0.png", hex3Texture);
+	/*texture_image = tygra::imageFromPNG("spec1.png");
 	if (texture_image.containsData()) {
 		glGenTextures(1, &hex1Texture);
 		glBindTexture(GL_TEXTURE_2D, hex1Texture);
@@ -219,7 +235,7 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-
+	textures["spec1.png"] = hex1Texture;
 
 	texture_image = tygra::imageFromPNG("diff0.png");
 	if (texture_image.containsData()) {
@@ -243,7 +259,7 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-
+	textures["diff0.png"] = hex2Texture;
 
 
 	texture_image = tygra::imageFromPNG("diff1.png");
@@ -268,12 +284,10 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
+	textures["diff1.png"] = hex3Texture;*/
 
-	/*glGenBuffers(1, &uboHandle);
-	glBindBuffer(GL_UNIFORM_BUFFER, uboHandle);
-	glBufferData(GL_UNIFORM_BUFFER, blockSize, blockBuffer, GL_DYNAMIC_DRAW);*/
 
-	for (int i = 0; i < scene_->getAllLights().size(); ++i)
+	for (unsigned int i = 0; i < scene_->getAllLights().size(); ++i)
 	{
 		Light light;
 		light.position = scene_->getAllLights()[i].getPosition();
@@ -308,6 +322,8 @@ void MyView::LoadTexture(std::string textureName, GLuint texture)
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
+	textures[textureName] = texture;
+
 }
 
 void MyView::
@@ -346,6 +362,8 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	glClearColor(0.f, 0.f, 0.25f, 0.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 	GLint viewport_size[4];
 	glGetIntegerv(GL_VIEWPORT, viewport_size);
 	const float aspect_ratio = viewport_size[2] / (float)viewport_size[3];
@@ -355,51 +373,40 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 
 	glUseProgram(first_program_);
 
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, hexTexture);
-	glUniform1i(glGetUniformLocation(first_program_, "mystery_sampler"), 0);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, hex1Texture);
-	glUniform1i(glGetUniformLocation(first_program_, "mystery_sampler1"), 0);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, hex2Texture);
-	glUniform1i(glGetUniformLocation(first_program_, "mystery_sampler2"), 0);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, hex3Texture);
-	glUniform1i(glGetUniformLocation(first_program_, "mystery_sampler3"), 0);
-
-
 	glm::vec3 camPos = scene_->getCamera().getPosition();
 
 	GLuint camPosID = glGetUniformLocation(first_program_, "camera_position");
-	glUniform3fv(camPosID, 3, glm::value_ptr(camPos));
-	GLuint maxLightsID = glGetUniformLocation(first_program_, "MAX_LIGHTS");
-	glUniform1f(maxLightsID, scene_->getAllLights().size());
-	
-	glm::vec3 positions[22];
-	glm::vec3 intensities[22];
-	float ranges[22];
+	glUniform3fv(camPosID, 1, glm::value_ptr(camPos));
 
-	int count = scene_->getAllLights().size();
-	for (int i = 0; i < scene_->getAllLights().size(); ++i)
+	GLuint maxLightsID = glGetUniformLocation(first_program_, "MAX_LIGHTS");
+	glUniform1f(maxLightsID, (GLfloat)scene_->getAllLights().size());
+
+	lights.clear();
+	for (unsigned int i = 0; i < scene_->getAllLights().size(); ++i)
 	{
-		positions[i] = scene_->getAllLights()[i].getPosition();
-		ranges[i] = scene_->getAllLights()[i].getRange();
-		intensities[i] = scene_->getAllLights()[i].getIntensity();
+		Light light;
+		light.position = scene_->getAllLights()[i].getPosition();
+		light.range = scene_->getAllLights()[i].getRange();
+		light.intensity = scene_->getAllLights()[i].getIntensity();
+		lights.push_back(light);
 	}
 
-	GLuint lightPosID = glGetUniformLocation(first_program_, "positions");
-	glUniform3fv(lightPosID, count, (const float *)positions);
-	GLuint lightRangeID = glGetUniformLocation(first_program_, "ranges");
-	glUniform1fv(lightRangeID, count, (const float *)ranges);
-	GLuint lightIntensityID = glGetUniformLocation(first_program_, "intensities");
-	glUniform3fv(lightIntensityID, count, (const float *)intensities);
+	for (unsigned int i = 0; i < scene_->getAllLights().size(); ++i)
+	{
+		std::string pos = "LightSource[" + std::to_string(i) + "].position";
+		std::string range = "LightSource[" + std::to_string(i) + "].range";
+		std::string intensity = "LightSource[" + std::to_string(i) + "].intensity";
+
+		GLuint lightPosID = glGetUniformLocation(first_program_, pos.c_str());
+		glUniform3fv(lightPosID, 1, glm::value_ptr(lights[i].position));
+		GLuint lightRangeID = glGetUniformLocation(first_program_, range.c_str());
+		glUniform1f(lightRangeID, lights[i].range);
+		GLuint lightIntensityID = glGetUniformLocation(first_program_, intensity.c_str());
+		glUniform3fv(lightIntensityID, 1, glm::value_ptr(lights[i].intensity));
+	}
 
 	glBindVertexArray(vao);
+
 
 	for (const auto& instance : scene_->getAllInstances())
 	{
@@ -410,21 +417,51 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 
 		glm::mat4 projection_view_mod_xform = projection_xform * view_xform * model_xform;
 		glm::mat4 inverse_normal_xform = view_xform * model_xform;
+		
+		auto material = scene_->getMaterialById(instance.getMaterialId());
+		glm::vec3 diffuse = material.getDiffuseColour();
+		glm::vec3 ambient = material.getAmbientColour();
+		glm::vec3 spec = material.getSpecularColour();
+		auto diffTex = material.getDiffuseTexture();
+		auto specTex = material.getSpecularTexture();
+		auto shininess = material.getShininess();
+		auto isShiney = material.isShiny();
 
-
+		//TODO: Move GLuints to start
 		GLuint projection_id = glGetUniformLocation(first_program_, "projection_view_model_xform");
 		glUniformMatrix4fv(projection_id, 1, GL_FALSE, glm::value_ptr(projection_view_mod_xform));
 
 		GLuint model_xform_id = glGetUniformLocation(first_program_, "model_xform");
 		glUniformMatrix4fv(model_xform_id, 1, GL_FALSE, glm::value_ptr(model_xform));
+		
+		GLuint instance_diffuse_id = glGetUniformLocation(first_program_, "vertex_diffuse_colour");
+		glUniform3fv(instance_diffuse_id, 1, glm::value_ptr(diffuse));
 
-		GLfloat position[3] = { 0.0f, 5.0f, 0.0f };
-		GLfloat direction[3] = { 1.0f, 1.0f, 1.0f };
-		GLfloat range = 0.25f, field_of_view = scene_->getCamera().getVerticalFieldOfViewInDegrees();
-		glm::mat4 projectionViewXForm = projection_xform * view_xform;
+		GLuint instance_amb_id = glGetUniformLocation(first_program_, "vertex_ambient_colour");
+		glUniform3fv(instance_amb_id, 1, glm::value_ptr(ambient));
+		
+		GLuint instance_spec_id = glGetUniformLocation(first_program_, "vertex_spec_colour");
+		glUniform3fv(instance_spec_id, 1, glm::value_ptr(spec));
 
+		GLuint instance_shiny_id = glGetUniformLocation(first_program_, "vertex_shininess");
+		glUniform1f(instance_shiny_id, shininess);
 
+		GLuint instance_is_shiny_id = glGetUniformLocation(first_program_, "is_vertex_shiney");
+		glUniform1f(instance_is_shiny_id, (float)isShiney);
 
+		/*glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textures[diffTex]);
+		glUniform1i(glGetUniformLocation(first_program_, "diffuse_texture"), 0);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textures[specTex]);
+		glUniform1i(glGetUniformLocation(first_program_, "specular_texture"), 0);*/
+		
+		glBegin(GL_LINE_STRIP);
+		glVertex3f(0.0f, 0.0f, 0.0f);  // V0
+		glVertex3f(50.0f, 50.0f, 0.0f);  // V1
+		glVertex3f(50.0f, 100.0f, 0.0f);  // V2
+		glEnd();
 
 		//Drawing
 		//glDrawElementsInstancedBaseVertex(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), scene_->getInstancesByMeshId(instance.getMeshId()).size(), mesh.first_vertex_index);

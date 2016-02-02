@@ -1,11 +1,11 @@
-﻿Build started 21/01/2016 09:19:37.
-     1>Project "U:\GitHub\3DGP 2015-2016\ICA1\Spice My Sponza\tgl\tgl.vcxproj" on node 2 (Build target(s)).
+﻿Build started 28/01/2016 10:51:40.
+     1>Project "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\tgl\tgl.vcxproj" on node 2 (Build target(s)).
      1>Lib:
-         tgl.vcxproj -> U:\GitHub\3DGP 2015-2016\ICA1\Spice My Sponza\tgl\lib\Win32\v120\Debug\tgl.lib
+         tgl.vcxproj -> U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\tgl\lib\Win32\v120\Debug\tgl.lib
        PostBuildEvent:
-         xcopy /E /S /I /Y "doc" "U:\GitHub\3DGP 2015-2016\ICA1\Spice My Sponza\external\doc"
-         xcopy /E /S /I /Y "include" "U:\GitHub\3DGP 2015-2016\ICA1\Spice My Sponza\external\include"
-         xcopy /E /S /I /Y "lib" "U:\GitHub\3DGP 2015-2016\ICA1\Spice My Sponza\external\lib"
+         xcopy /E /S /I /Y "doc" "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\doc"
+         xcopy /E /S /I /Y "include" "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\include"
+         xcopy /E /S /I /Y "lib" "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\lib"
          :VCEnd
          doc\glm.txt
          1 File(s) copied
@@ -242,8 +242,8 @@
          lib\Win32\v120\Debug\tgl.pdb
          lib\Win32\v120\Debug\tgl.lib
          2 File(s) copied
-     1>Done Building Project "U:\GitHub\3DGP 2015-2016\ICA1\Spice My Sponza\tgl\tgl.vcxproj" (Build target(s)).
+     1>Done Building Project "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\tgl\tgl.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:14.93
+Time Elapsed 00:00:42.78

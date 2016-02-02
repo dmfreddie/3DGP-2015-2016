@@ -1,11 +1,11 @@
-﻿Build started 21/01/2016 09:32:18.
-     1>Project "U:\GitHub\3DGP 2015-2016\ICA1\Spice My Sponza\SceneModel\SceneModel.vcxproj" on node 3 (Build target(s)).
+﻿Build started 28/01/2016 11:40:35.
+     1>Project "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\SceneModel\SceneModel.vcxproj" on node 3 (Build target(s)).
      1>Lib:
-         SceneModel.vcxproj -> U:\GitHub\3DGP 2015-2016\ICA1\Spice My Sponza\SceneModel\lib\Win32\v120\Debug\SceneModel.lib
+         SceneModel.vcxproj -> U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\SceneModel\lib\Win32\v120\Debug\SceneModel.lib
        PostBuildEvent:
-         xcopy /E /S /I /Y "doc" "U:\GitHub\3DGP 2015-2016\ICA1\Spice My Sponza\external\doc"
-         xcopy /E /S /I /Y "include" "U:\GitHub\3DGP 2015-2016\ICA1\Spice My Sponza\external\include"
-         xcopy /E /S /I /Y "lib" "U:\GitHub\3DGP 2015-2016\ICA1\Spice My Sponza\external\lib"
+         xcopy /E /S /I /Y "doc" "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\doc"
+         xcopy /E /S /I /Y "include" "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\include"
+         xcopy /E /S /I /Y "lib" "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\lib"
          :VCEnd
          File not found - doc
          0 File(s) copied
@@ -22,8 +22,8 @@
          lib\Win32\v120\Debug\scenemodel.pdb
          lib\Win32\v120\Debug\SceneModel.lib
          2 File(s) copied
-     1>Done Building Project "U:\GitHub\3DGP 2015-2016\ICA1\Spice My Sponza\SceneModel\SceneModel.vcxproj" (Build target(s)).
+     1>Done Building Project "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\SceneModel\SceneModel.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:02.26
+Time Elapsed 00:00:06.82
