@@ -1,7 +1,7 @@
-﻿Build started 02/02/2016 21:31:02.
-     1>Project "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\SceneModel\SceneModel.vcxproj" on node 3 (Rebuild target(s)).
+﻿Build started 02/02/2016 22:36:19.
+     1>Project "\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\SceneModel\SceneModel.vcxproj" on node 3 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Iinclude /I"U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external/include" /Zi /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _LIB /D _UNICODE /D UNICODE /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"build\Debug\\" /Fd"lib\Win32\v120\Debug\SceneModel.pdb" /Gd /TP /analyze- /errorReport:prompt src\Camera.cpp src\Context.cpp src\GeometryBuilder.cpp src\Instance.cpp src\Light.cpp src\Material.cpp src\Mesh.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Iinclude /I"\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external/include" /Zi /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _LIB /D _UNICODE /D UNICODE /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"build\Debug\\" /Fd"lib\Win32\v120\Debug\SceneModel.pdb" /Gd /TP /analyze- /errorReport:prompt src\Camera.cpp src\Context.cpp src\GeometryBuilder.cpp src\Instance.cpp src\Light.cpp src\Material.cpp src\Mesh.cpp
          Camera.cpp
          Context.cpp
          GeometryBuilder.cpp
@@ -18,14 +18,14 @@
          build\Debug\Light.obj
          build\Debug\Material.obj
          build\Debug\Mesh.obj
-         SceneModel.vcxproj -> U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\SceneModel\lib\Win32\v120\Debug\SceneModel.lib
+         SceneModel.vcxproj -> \\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\SceneModel\lib\Win32\v120\Debug\SceneModel.lib
        PostBuildEvent:
-         xcopy /E /S /I /Y "doc" "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\doc"
-         xcopy /E /S /I /Y "include" "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\include"
-         xcopy /E /S /I /Y "lib" "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\lib"
+         xcopy /E /S /I /Y "doc" "\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\doc"
+         xcopy /E /S /I /Y "include" "\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\include"
+         xcopy /E /S /I /Y "lib" "\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\lib"
          :VCEnd
-         File not found - doc
          0 File(s) copied
+         File not found - doc
          include\SceneModel\Camera.hpp
          include\SceneModel\Context.hpp
          include\SceneModel\GeometryBuilder.hpp
@@ -39,8 +39,8 @@
          lib\Win32\v120\Debug\scenemodel.pdb
          lib\Win32\v120\Debug\SceneModel.lib
          2 File(s) copied
-     1>Done Building Project "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\SceneModel\SceneModel.vcxproj" (Rebuild target(s)).
+     1>Done Building Project "\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\SceneModel\SceneModel.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:16.98
+Time Elapsed 00:00:33.69

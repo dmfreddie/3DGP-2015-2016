@@ -26,12 +26,39 @@ setScene(std::shared_ptr<const SceneModel::Context> scene)
 	scene_ = scene;
 }
 
-void MyView::EnableSpikey()
+void MyView::
+EnableSpikey()
 {
 	spikey = !spikey;
 }
 
-void MyView::CompileShader(std::string shaderFileName, GLenum shaderType, GLuint& shaderVariable)
+void MyView::
+RenderMode()
+{
+	switch (currentRenderMode)
+	{
+	case MyView::Point:
+		currentRenderMode = RenderMode_::Wireframe;
+		break;
+	case MyView::Wireframe:
+		currentRenderMode = RenderMode_::Face;
+		break;
+	case MyView::Face:
+		currentRenderMode = RenderMode_::Point;
+		break;
+	default:
+		break;
+	}
+}
+
+void MyView::
+ToggleOutlineMode()
+{
+	outlineMode = !outlineMode;
+}
+
+void MyView::
+CompileShader(std::string shaderFileName, GLenum shaderType, GLuint& shaderVariable)
 {
 	GLint compile_status = 0;
 	shaderVariable = glCreateShader(shaderType);
@@ -113,6 +140,11 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 	assert(scene_ != nullptr);
 
 	CompileShaders();
+	std::cout << "Press F2 to view the direction of the vertex normals." << std::endl;
+	std::cout << "Press F3 to enable wireframe mode." << std::endl;
+	std::cout << "Press F4 to change rendering mode (Fill, Line, Point)." << std::endl;
+	std::cout << "Press F5 to recompile the shader." << std::endl;
+	
 
 	SceneModel::GeometryBuilder builder;
 	std::vector<Vertex> vertices;
@@ -303,6 +335,7 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 	uniforms["is_vertex_shiney"] = glGetUniformLocation(first_program_, "is_vertex_shiney");
 	uniforms["camera_position"] = glGetUniformLocation(first_program_, "camera_position");
 	uniforms["MAX_LIGHTS"] = glGetUniformLocation(first_program_, "MAX_LIGHTS");
+	uniforms["outline"] = glGetUniformLocation(first_program_, "outline");
 
 	uniforms["spikey_projection_view_model_xform"] = glGetUniformLocation(spikey_program_, "projection_view_model_xform");
 	uniforms["spikey_model_xform"] = glGetUniformLocation(spikey_program_, "model_xform");
@@ -424,6 +457,26 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	float shininess;
 	bool isShiney;
 
+	switch (currentRenderMode)
+	{
+	case MyView::Point:
+		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+		break;
+	case MyView::Wireframe:
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		break;
+	case MyView::Face:
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		break;
+	default:
+		break;
+	}
+
+
+	float outLineInt = 0;
+
+	glUniform1f(uniforms["outline"], outLineInt);
+
 	for (const auto& instance : scene_->getAllInstances())
 	{
 		//Populate uniform variables
@@ -463,10 +516,33 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 
 		//Drawing
 		//glDrawElementsInstancedBaseVertex(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), scene_->getInstancesByMeshId(instance.getMeshId()).size(), mesh.first_vertex_index); 
+
 		glDrawElementsBaseVertex(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), mesh.first_vertex_index);
 
+		
 	}
+	if (outlineMode)
+	{
+		outLineInt = 1;
+		glUniform1f(uniforms["outline"], outLineInt);
 
+		//Populate uniform variables
+		for (const auto& instance : scene_->getAllInstances())
+		{
+			glm::mat4 model_xform = glm::mat4(instance.getTransformationMatrix());
+			const MeshGL& mesh = meshes_[instance.getMeshId()];
+
+			projection_view_mod_xform = projection_xform * view_xform * model_xform;
+
+			glUniformMatrix4fv(uniforms["projection_view_model_xform"], 1, GL_FALSE, glm::value_ptr(projection_view_mod_xform));
+			glUniformMatrix4fv(uniforms["model_xform"], 1, GL_FALSE, glm::value_ptr(model_xform));
+
+			
+
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			glDrawElementsBaseVertex(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), mesh.first_vertex_index);
+		}
+	}
 	if (spikey)
 	{
 		glUseProgram(spikey_program_);

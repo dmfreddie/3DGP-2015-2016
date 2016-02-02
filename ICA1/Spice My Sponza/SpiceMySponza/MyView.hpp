@@ -9,6 +9,8 @@
 #include <map>
 #include <unordered_map>
 
+
+
 class MyView : public tygra::WindowViewDelegate
 {
 public:
@@ -21,6 +23,9 @@ public:
     setScene(std::shared_ptr<const SceneModel::Context> scene);
 	void CompileShaders();
 	void EnableSpikey();
+	void RenderMode();
+	void ToggleOutlineMode();
+
 private:
 	void CompileShader(std::string shaderFileName, GLenum shaderType, GLuint& shaderVariable);
 
@@ -97,15 +102,18 @@ private:
 	std::map<SceneModel::MeshId, MeshGL> meshes_;
 	int windowWidth, windowHeight = 0;
 
+    
+	std::unordered_map<std::string, GLuint> textures;
+	std::unordered_map<std::string, GLuint> uniforms;
+	bool spikey = false;
+
 	enum RenderMode_
 	{
 		Point,
 		Wireframe,
 		Face
 	};
+
+	bool outlineMode = false;
 	RenderMode_ currentRenderMode = RenderMode_::Face;
-    
-	std::unordered_map<std::string, GLuint> textures;
-	std::unordered_map<std::string, GLuint> uniforms;
-	bool spikey = false;
 };
