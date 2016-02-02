@@ -43,6 +43,12 @@
     <None Include="..\demo\sponza_gs.glsl">
       <Filter>Runtime Files</Filter>
     </None>
+    <None Include="..\demo\spikeysponza_vs.glsl">
+      <Filter>Runtime Files</Filter>
+    </None>
+    <None Include="..\demo\spikeysponza_fs.glsl">
+      <Filter>Runtime Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\demo\readme.txt">

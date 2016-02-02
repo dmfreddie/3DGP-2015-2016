@@ -11,7 +11,8 @@ MyView() : hexTexture(0),
 		   hex1Texture(0),
 		   hex2Texture(0),
 		   hex3Texture(0),
-		   first_program_(0)
+		   first_program_(0),
+		   spikey_program_(0)
 {
 }
 
@@ -23,6 +24,12 @@ void MyView::
 setScene(std::shared_ptr<const SceneModel::Context> scene)
 {
 	scene_ = scene;
+}
+
+void MyView::EnableSpikey()
+{
+	spikey = !spikey;
+	std::cout << spikey;
 }
 
 void MyView::CompileShaders()
@@ -44,21 +51,6 @@ void MyView::CompileShaders()
 		glGetShaderInfoLog(vertex_shader, string_length, NULL, log);
 		std::cerr << log << std::endl;
 	}
-/*
-	geometary_shader = glCreateShader(GL_GEOMETRY_SHADER);
-	std::string geometary_shader_string = tygra::stringFromFile("sponza_gs.glsl");
-	const char *geometary_shader_code = geometary_shader_string.c_str();
-	glShaderSource(geometary_shader, 1,
-		(const GLchar **)&geometary_shader_code, NULL);
-	glCompileShader(geometary_shader);
-	glGetShaderiv(geometary_shader, GL_COMPILE_STATUS, &compile_status);
-	if (compile_status != GL_TRUE) {
-		const int string_length = 1024;
-		GLchar log[string_length] = "";
-		glGetShaderInfoLog(geometary_shader, string_length, NULL, log);
-		std::cerr << log << std::endl;
-	}*/
-
 	fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 	std::string fragment_shader_string = tygra::stringFromFile("sponza_fs.glsl");
 	const char *fragment_shader_code = fragment_shader_string.c_str();
@@ -73,6 +65,52 @@ void MyView::CompileShaders()
 		std::cerr << log << std::endl;
 	}
 
+	// Spikey Sponza ---------------
+	GLint spikeycompile_status = 0;
+	spikeyvertex_shader = glCreateShader(GL_VERTEX_SHADER);
+	std::string spikeyvertex_shader_string = tygra::stringFromFile("spikeysponza_vs.glsl");
+	const char *spikeyvertex_shader_code = spikeyvertex_shader_string.c_str();
+	glShaderSource(spikeyvertex_shader, 1,
+		(const GLchar **)&spikeyvertex_shader_code, NULL);
+	glCompileShader(spikeyvertex_shader);
+	glGetShaderiv(spikeyvertex_shader, GL_COMPILE_STATUS, &spikeycompile_status);
+	if (spikeycompile_status != GL_TRUE) {
+		const int string_length = 1024;
+		GLchar log[string_length] = "";
+		glGetShaderInfoLog(spikeyvertex_shader, string_length, NULL, log);
+		std::cerr << log << std::endl;
+	}
+
+	geometary_shader = glCreateShader(GL_GEOMETRY_SHADER);
+	std::string geometary_shader_string = tygra::stringFromFile("sponza_gs.glsl");
+	const char *geometary_shader_code = geometary_shader_string.c_str();
+	glShaderSource(geometary_shader, 1,
+		(const GLchar **)&geometary_shader_code, NULL);
+	glCompileShader(geometary_shader);
+	glGetShaderiv(geometary_shader, GL_COMPILE_STATUS, &spikeycompile_status);
+	if (spikeycompile_status != GL_TRUE) {
+		const int string_length = 1024;
+		GLchar log[string_length] = "";
+		glGetShaderInfoLog(geometary_shader, string_length, NULL, log);
+		std::cerr << log << std::endl;
+	}
+
+	spikeyfragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+	std::string spikeyfragment_shader_string = tygra::stringFromFile("spikeysponza_fs.glsl");
+	const char *spikeyfragment_shader_code = spikeyfragment_shader_string.c_str();
+	glShaderSource(spikeyfragment_shader, 1,
+		(const GLchar **)&spikeyfragment_shader_code, NULL);
+	glCompileShader(spikeyfragment_shader);
+	glGetShaderiv(spikeyfragment_shader, GL_COMPILE_STATUS, &spikeycompile_status);
+	if (spikeycompile_status != GL_TRUE) {
+		const int string_length = 1024;
+		GLchar log[string_length] = "";
+		glGetShaderInfoLog(spikeyfragment_shader, string_length, NULL, log);
+		std::cerr << log << std::endl;
+	}
+
+
+
 	first_program_ = glCreateProgram();
 	glAttachShader(first_program_, vertex_shader);
 	glBindAttribLocation(first_program_, 0, "vertex_position");
@@ -84,30 +122,39 @@ void MyView::CompileShaders()
 	glDeleteShader(fragment_shader);
 	glLinkProgram(first_program_);
 
+	spikey_program_ = glCreateProgram();
+	glAttachShader(spikey_program_, spikeyvertex_shader);
+	glBindAttribLocation(spikey_program_, 0, "vertex_position");
+	glBindAttribLocation(spikey_program_, 1, "vertex_normal");
+	glDeleteShader(spikeyvertex_shader);
+	glAttachShader(spikey_program_, geometary_shader);
+	glDeleteShader(geometary_shader);
+	glAttachShader(spikey_program_, spikeyfragment_shader);
+	glDeleteShader(spikeyfragment_shader);
+	glLinkProgram(spikey_program_);
 
-	GLint link_status = 0;
-	glGetProgramiv(first_program_, GL_LINK_STATUS, &link_status);
-	if (link_status != GL_TRUE) {
+
+	GLint link_status_normal = 0;
+	GLint link_status_spikey = 0;
+	glGetProgramiv(first_program_, GL_LINK_STATUS, &link_status_normal);
+	glGetProgramiv(spikey_program_, GL_LINK_STATUS, &link_status_spikey);
+	if (link_status_normal != GL_TRUE) {
 		const int string_length = 1024;
 		GLchar log[string_length] = "";
 		glGetProgramInfoLog(first_program_, string_length, NULL, log);
 		std::cerr << log << std::endl;
 	}
 	else
-		std::cout << "Shader Compilation successful!" << std::endl;
-
-	//Shader struct block
-	/*blockIndex = glGetUniformBlockIndex(first_program_, "Light");
-
-	glGetActiveUniformBlockiv(first_program_, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
-	blockBuffer = (GLubyte *)malloc(blockSize);
-	// Query for the offsets of each block variable
-	const GLchar *names[] = { "position", "range",
-		"direction", "field_of_view", "projection_view_xform" };
-
-	glGetUniformIndices(first_program_, 5, names, indices);
-
-	glGetActiveUniformsiv(first_program_, 5, indices, GL_UNIFORM_OFFSET, offset);*/
+		std::cout << "Standard Shader Compilation successful!" << std::endl;
+	if (link_status_spikey != GL_TRUE) {
+		const int string_length = 1024;
+		GLchar log[string_length] = "";
+		glGetProgramInfoLog(spikey_program_, string_length, NULL, log);
+		std::cerr << log << std::endl;
+	}
+	else
+		std::cout << "Spikey Shader Compilation successful!" << std::endl;
+	std::cout << link_status_spikey << std::endl;
 
 }
 
@@ -185,9 +232,9 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 	glBindVertexArray(0);
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	LoadTexture("spec1.png", hex2Texture);
-	LoadTexture("spec0.png", hexTexture);
-	/*tygra::Image texture_image = tygra::imageFromPNG("spec0.png");
+	//LoadTexture("spec1.png", hex2Texture);
+	//LoadTexture("spec0.png", hexTexture);
+	tygra::Image texture_image = tygra::imageFromPNG("spec0.png");
 	if (texture_image.containsData()) {
 		glGenTextures(1, &hexTexture);
 		glBindTexture(GL_TEXTURE_2D, hexTexture);
@@ -209,11 +256,11 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-	textures["spec0.png"] = hexTexture;*/
+	textures["spec0.png"] = hexTexture;
 
-	LoadTexture("diff1.png", hex1Texture);
-	LoadTexture("diff0.png", hex3Texture);
-	/*texture_image = tygra::imageFromPNG("spec1.png");
+	//LoadTexture("diff1.png", hex1Texture);
+	//LoadTexture("diff0.png", hex3Texture);
+	texture_image = tygra::imageFromPNG("spec1.png");
 	if (texture_image.containsData()) {
 		glGenTextures(1, &hex1Texture);
 		glBindTexture(GL_TEXTURE_2D, hex1Texture);
@@ -284,7 +331,7 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-	textures["diff1.png"] = hex3Texture;*/
+	textures["diff1.png"] = hex3Texture;
 
 
 	for (unsigned int i = 0; i < scene_->getAllLights().size(); ++i)
@@ -338,6 +385,7 @@ void MyView::
 windowViewDidStop(std::shared_ptr<tygra::Window> window)
 {
 	glDeleteProgram(first_program_);
+	glDeleteProgram(spikey_program_);
 	for (const auto& instance : scene_->getAllInstances()) {
 
 		/*glDeleteBuffers(1, &meshes_[instance.getMeshId()].position_vbo);
@@ -417,7 +465,7 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 
 		glm::mat4 projection_view_mod_xform = projection_xform * view_xform * model_xform;
 		glm::mat4 inverse_normal_xform = view_xform * model_xform;
-		
+
 		auto material = scene_->getMaterialById(instance.getMaterialId());
 		glm::vec3 diffuse = material.getDiffuseColour();
 		glm::vec3 ambient = material.getAmbientColour();
@@ -433,13 +481,13 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 
 		GLuint model_xform_id = glGetUniformLocation(first_program_, "model_xform");
 		glUniformMatrix4fv(model_xform_id, 1, GL_FALSE, glm::value_ptr(model_xform));
-		
+
 		GLuint instance_diffuse_id = glGetUniformLocation(first_program_, "vertex_diffuse_colour");
 		glUniform3fv(instance_diffuse_id, 1, glm::value_ptr(diffuse));
 
 		GLuint instance_amb_id = glGetUniformLocation(first_program_, "vertex_ambient_colour");
 		glUniform3fv(instance_amb_id, 1, glm::value_ptr(ambient));
-		
+
 		GLuint instance_spec_id = glGetUniformLocation(first_program_, "vertex_spec_colour");
 		glUniform3fv(instance_spec_id, 1, glm::value_ptr(spec));
 
@@ -456,15 +504,42 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures[specTex]);
 		glUniform1i(glGetUniformLocation(first_program_, "specular_texture"), 0);*/
-		
-		glBegin(GL_LINE_STRIP);
-		glVertex3f(0.0f, 0.0f, 0.0f);  // V0
-		glVertex3f(50.0f, 50.0f, 0.0f);  // V1
-		glVertex3f(50.0f, 100.0f, 0.0f);  // V2
-		glEnd();
+
 
 		//Drawing
 		//glDrawElementsInstancedBaseVertex(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), scene_->getInstancesByMeshId(instance.getMeshId()).size(), mesh.first_vertex_index);
 		glDrawElementsBaseVertex(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), mesh.first_vertex_index);
+
+	}
+
+	if (spikey)
+	{
+		glUseProgram(spikey_program_);
+
+		for (const auto& instance : scene_->getAllInstances())
+		{
+			//Populate uniform variables
+
+			glm::mat4 model_xform = glm::mat4(instance.getTransformationMatrix());
+			const MeshGL& mesh = meshes_[instance.getMeshId()];
+
+			glm::mat4 projection_view_mod_xform = projection_xform * view_xform * model_xform;
+			glm::mat4 inverse_normal_xform = glm::transpose(glm::inverse(model_xform));
+
+			//TODO: Move GLuints to start
+			GLuint projection_id = glGetUniformLocation(spikey_program_, "projection_view_model_xform");
+			glUniformMatrix4fv(projection_id, 1, GL_FALSE, glm::value_ptr(projection_view_mod_xform));
+
+			GLuint model_xform_id = glGetUniformLocation(spikey_program_, "model_xform");
+			glUniformMatrix4fv(model_xform_id, 1, GL_FALSE, glm::value_ptr(model_xform));
+
+			GLuint inv_model_xform_id = glGetUniformLocation(spikey_program_, "normal_xform");
+			glUniformMatrix4fv(inv_model_xform_id, 1, GL_FALSE, glm::value_ptr(inverse_normal_xform));
+
+			//Drawing
+			//glDrawElementsInstancedBaseVertex(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), scene_->getInstancesByMeshId(instance.getMeshId()).size(), mesh.first_vertex_index);
+			glDrawElementsBaseVertex(GL_POINTS, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), mesh.first_vertex_index);
+
+		}
 	}
 }
