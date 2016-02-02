@@ -27,7 +27,7 @@ void MyController::
 windowControlWillStart(std::shared_ptr<tygra::Window> window)
 {
     window->setView(view_);
-    window->setTitle("3D Graphics Programming :: SpiceMySponza");
+    window->setTitle("3D Graphics Programming :: SpiceMySponza :: P4011584 - Freddie Babord");
 }
 
 void MyController::
@@ -111,13 +111,19 @@ windowControlKeyboardChanged(std::shared_ptr<tygra::Window> window,
 
 	switch (key_index)
 	{
+	case tygra::kWindowKeyF2:
+		view_->EnableSpikey();
+		break;
+	case tygra::kWindowKeyF3:
+		view_->ToggleOutlineMode();
+		break;
+	case tygra::kWindowKeyF4:
+		view_->RenderMode();
+		break;
 	case tygra::kWindowKeyF5:
 		view_->CompileShaders();
 		break;
-	case tygra::kWindowKeyF6:
-		view_->EnableSpikey();
-		break; 
-		// TODO: put usual keypress responses here
+	
 	}
 }
 

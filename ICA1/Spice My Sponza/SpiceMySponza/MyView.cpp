@@ -26,89 +26,65 @@ setScene(std::shared_ptr<const SceneModel::Context> scene)
 	scene_ = scene;
 }
 
-void MyView::EnableSpikey()
+void MyView::
+EnableSpikey()
 {
 	spikey = !spikey;
-	std::cout << spikey;
+}
+
+void MyView::
+RenderMode()
+{
+	switch (currentRenderMode)
+	{
+	case MyView::Point:
+		currentRenderMode = RenderMode_::Wireframe;
+		break;
+	case MyView::Wireframe:
+		currentRenderMode = RenderMode_::Face;
+		break;
+	case MyView::Face:
+		currentRenderMode = RenderMode_::Point;
+		break;
+	default:
+		break;
+	}
+}
+
+void MyView::
+ToggleOutlineMode()
+{
+	outlineMode = !outlineMode;
+}
+
+void MyView::
+CompileShader(std::string shaderFileName, GLenum shaderType, GLuint& shaderVariable)
+{
+	GLint compile_status = 0;
+	shaderVariable = glCreateShader(shaderType);
+	std::string shader_string = tygra::stringFromFile(shaderFileName);
+	const char *shader_code = shader_string.c_str();
+	glShaderSource(shaderVariable, 1, (const GLchar **)&shader_code, NULL);
+	glCompileShader(shaderVariable);
+	glGetShaderiv(shaderVariable, GL_COMPILE_STATUS, &compile_status);
+	if (compile_status != GL_TRUE) {
+		const int string_length = 1024;
+		GLchar log[string_length] = "";
+		glGetShaderInfoLog(shaderVariable, string_length, NULL, log);
+		std::cerr << log << std::endl;
+	}
 }
 
 void MyView::CompileShaders()
 {
 
 	std::cout << "Compiling Shaders...";
-	GLint compile_status = 0;
 
-	vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	std::string vertex_shader_string = tygra::stringFromFile("sponza_vs.glsl");
-	const char *vertex_shader_code = vertex_shader_string.c_str();
-	glShaderSource(vertex_shader, 1,
-		(const GLchar **)&vertex_shader_code, NULL);
-	glCompileShader(vertex_shader);
-	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &compile_status);
-	if (compile_status != GL_TRUE) {
-		const int string_length = 1024;
-		GLchar log[string_length] = "";
-		glGetShaderInfoLog(vertex_shader, string_length, NULL, log);
-		std::cerr << log << std::endl;
-	}
-	fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	std::string fragment_shader_string = tygra::stringFromFile("sponza_fs.glsl");
-	const char *fragment_shader_code = fragment_shader_string.c_str();
-	glShaderSource(fragment_shader, 1,
-		(const GLchar **)&fragment_shader_code, NULL);
-	glCompileShader(fragment_shader);
-	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &compile_status);
-	if (compile_status != GL_TRUE) {
-		const int string_length = 1024;
-		GLchar log[string_length] = "";
-		glGetShaderInfoLog(fragment_shader, string_length, NULL, log);
-		std::cerr << log << std::endl;
-	}
-
-	// Spikey Sponza ---------------
-	GLint spikeycompile_status = 0;
-	spikeyvertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	std::string spikeyvertex_shader_string = tygra::stringFromFile("spikeysponza_vs.glsl");
-	const char *spikeyvertex_shader_code = spikeyvertex_shader_string.c_str();
-	glShaderSource(spikeyvertex_shader, 1,
-		(const GLchar **)&spikeyvertex_shader_code, NULL);
-	glCompileShader(spikeyvertex_shader);
-	glGetShaderiv(spikeyvertex_shader, GL_COMPILE_STATUS, &spikeycompile_status);
-	if (spikeycompile_status != GL_TRUE) {
-		const int string_length = 1024;
-		GLchar log[string_length] = "";
-		glGetShaderInfoLog(spikeyvertex_shader, string_length, NULL, log);
-		std::cerr << log << std::endl;
-	}
-
-	geometary_shader = glCreateShader(GL_GEOMETRY_SHADER);
-	std::string geometary_shader_string = tygra::stringFromFile("sponza_gs.glsl");
-	const char *geometary_shader_code = geometary_shader_string.c_str();
-	glShaderSource(geometary_shader, 1,
-		(const GLchar **)&geometary_shader_code, NULL);
-	glCompileShader(geometary_shader);
-	glGetShaderiv(geometary_shader, GL_COMPILE_STATUS, &spikeycompile_status);
-	if (spikeycompile_status != GL_TRUE) {
-		const int string_length = 1024;
-		GLchar log[string_length] = "";
-		glGetShaderInfoLog(geometary_shader, string_length, NULL, log);
-		std::cerr << log << std::endl;
-	}
-
-	spikeyfragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	std::string spikeyfragment_shader_string = tygra::stringFromFile("spikeysponza_fs.glsl");
-	const char *spikeyfragment_shader_code = spikeyfragment_shader_string.c_str();
-	glShaderSource(spikeyfragment_shader, 1,
-		(const GLchar **)&spikeyfragment_shader_code, NULL);
-	glCompileShader(spikeyfragment_shader);
-	glGetShaderiv(spikeyfragment_shader, GL_COMPILE_STATUS, &spikeycompile_status);
-	if (spikeycompile_status != GL_TRUE) {
-		const int string_length = 1024;
-		GLchar log[string_length] = "";
-		glGetShaderInfoLog(spikeyfragment_shader, string_length, NULL, log);
-		std::cerr << log << std::endl;
-	}
-
+	CompileShader("sponza_vs.glsl", GL_VERTEX_SHADER, vertex_shader);
+	CompileShader("sponza_fs.glsl", GL_FRAGMENT_SHADER, fragment_shader);
+	CompileShader("spikeysponza_vs.glsl", GL_VERTEX_SHADER, spikeyvertex_shader);
+	CompileShader("sponza_gs.glsl", GL_GEOMETRY_SHADER, geometary_shader);
+	CompileShader("spikeysponza_fs.glsl", GL_FRAGMENT_SHADER, spikeyfragment_shader);
 
 
 	first_program_ = glCreateProgram();
@@ -146,6 +122,7 @@ void MyView::CompileShaders()
 	}
 	else
 		std::cout << "Standard Shader Compilation successful!" << std::endl;
+
 	if (link_status_spikey != GL_TRUE) {
 		const int string_length = 1024;
 		GLchar log[string_length] = "";
@@ -154,7 +131,6 @@ void MyView::CompileShaders()
 	}
 	else
 		std::cout << "Spikey Shader Compilation successful!" << std::endl;
-	std::cout << link_status_spikey << std::endl;
 
 }
 
@@ -164,6 +140,11 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 	assert(scene_ != nullptr);
 
 	CompileShaders();
+	std::cout << "Press F2 to view the direction of the vertex normals." << std::endl;
+	std::cout << "Press F3 to enable wireframe mode." << std::endl;
+	std::cout << "Press F4 to change rendering mode (Fill, Line, Point)." << std::endl;
+	std::cout << "Press F5 to recompile the shader." << std::endl;
+	
 
 	SceneModel::GeometryBuilder builder;
 	std::vector<Vertex> vertices;
@@ -343,6 +324,22 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 		lights.push_back(light);
 	}
 
+
+	//Uniforms
+	uniforms["projection_view_model_xform"] = glGetUniformLocation(first_program_, "projection_view_model_xform");
+	uniforms["model_xform"] = glGetUniformLocation(first_program_, "model_xform");
+	uniforms["vertex_diffuse_colour"] = glGetUniformLocation(first_program_, "vertex_diffuse_colour");
+	uniforms["vertex_ambient_colour"] = glGetUniformLocation(first_program_, "vertex_ambient_colour");
+	uniforms["vertex_spec_colour"] = glGetUniformLocation(first_program_, "vertex_spec_colour");
+	uniforms["vertex_shininess"] = glGetUniformLocation(first_program_, "vertex_shininess");
+	uniforms["is_vertex_shiney"] = glGetUniformLocation(first_program_, "is_vertex_shiney");
+	uniforms["camera_position"] = glGetUniformLocation(first_program_, "camera_position");
+	uniforms["MAX_LIGHTS"] = glGetUniformLocation(first_program_, "MAX_LIGHTS");
+	uniforms["outline"] = glGetUniformLocation(first_program_, "outline");
+
+	uniforms["spikey_projection_view_model_xform"] = glGetUniformLocation(spikey_program_, "projection_view_model_xform");
+	uniforms["spikey_model_xform"] = glGetUniformLocation(spikey_program_, "model_xform");
+	uniforms["spikey_normal_xform"] = glGetUniformLocation(spikey_program_, "normal_xform");
 }
 
 void MyView::LoadTexture(std::string textureName, GLuint texture)
@@ -406,12 +403,9 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-
 	glClearColor(0.f, 0.f, 0.25f, 0.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
+	
 	GLint viewport_size[4];
 	glGetIntegerv(GL_VIEWPORT, viewport_size);
 	const float aspect_ratio = viewport_size[2] / (float)viewport_size[3];
@@ -421,23 +415,19 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 
 	glUseProgram(first_program_);
 
-	glm::vec3 camPos = scene_->getCamera().getPosition();
+	glUniform3fv(uniforms["camera_position"], 1, glm::value_ptr(scene_->getCamera().getPosition()));
+	glUniform1f(uniforms["MAX_LIGHTS"], (GLfloat)scene_->getAllLights().size());
 
-	GLuint camPosID = glGetUniformLocation(first_program_, "camera_position");
-	glUniform3fv(camPosID, 1, glm::value_ptr(camPos));
-
-	GLuint maxLightsID = glGetUniformLocation(first_program_, "MAX_LIGHTS");
-	glUniform1f(maxLightsID, (GLfloat)scene_->getAllLights().size());
-
-	lights.clear();
 	for (unsigned int i = 0; i < scene_->getAllLights().size(); ++i)
 	{
-		Light light;
-		light.position = scene_->getAllLights()[i].getPosition();
-		light.range = scene_->getAllLights()[i].getRange();
-		light.intensity = scene_->getAllLights()[i].getIntensity();
-		lights.push_back(light);
+		lights[i].position = scene_->getAllLights()[i].getPosition();
+		lights[i].range = scene_->getAllLights()[i].getRange();
+		lights[i].intensity = scene_->getAllLights()[i].getIntensity();
 	}
+
+	GLuint lightPosID = 0;
+	GLuint lightRangeID = 0;
+	GLuint lightIntensityID = 0;
 
 	for (unsigned int i = 0; i < scene_->getAllLights().size(); ++i)
 	{
@@ -445,16 +435,47 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 		std::string range = "LightSource[" + std::to_string(i) + "].range";
 		std::string intensity = "LightSource[" + std::to_string(i) + "].intensity";
 
-		GLuint lightPosID = glGetUniformLocation(first_program_, pos.c_str());
+		lightPosID = glGetUniformLocation(first_program_, pos.c_str());
 		glUniform3fv(lightPosID, 1, glm::value_ptr(lights[i].position));
-		GLuint lightRangeID = glGetUniformLocation(first_program_, range.c_str());
+		lightRangeID = glGetUniformLocation(first_program_, range.c_str());
 		glUniform1f(lightRangeID, lights[i].range);
-		GLuint lightIntensityID = glGetUniformLocation(first_program_, intensity.c_str());
+		lightIntensityID = glGetUniformLocation(first_program_, intensity.c_str());
 		glUniform3fv(lightIntensityID, 1, glm::value_ptr(lights[i].intensity));
 	}
 
 	glBindVertexArray(vao);
 
+	SceneModel::Material material = scene_->getAllMaterials()[0];
+	glm::mat4 projection_view_mod_xform;
+	glm::mat4 inverse_normal_xform;
+
+	glm::vec3 diffuse;
+	glm::vec3 ambient;
+	glm::vec3 spec;
+	std::string diffTex;
+	std::string specTex;
+	float shininess;
+	bool isShiney;
+
+	switch (currentRenderMode)
+	{
+	case MyView::Point:
+		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+		break;
+	case MyView::Wireframe:
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		break;
+	case MyView::Face:
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		break;
+	default:
+		break;
+	}
+
+
+	float outLineInt = 0;
+
+	glUniform1f(uniforms["outline"], outLineInt);
 
 	for (const auto& instance : scene_->getAllInstances())
 	{
@@ -463,39 +484,26 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 		glm::mat4 model_xform = glm::mat4(instance.getTransformationMatrix());
 		const MeshGL& mesh = meshes_[instance.getMeshId()];
 
-		glm::mat4 projection_view_mod_xform = projection_xform * view_xform * model_xform;
-		glm::mat4 inverse_normal_xform = view_xform * model_xform;
+		projection_view_mod_xform = projection_xform * view_xform * model_xform;
+		inverse_normal_xform = view_xform * model_xform;
 
-		auto material = scene_->getMaterialById(instance.getMaterialId());
-		glm::vec3 diffuse = material.getDiffuseColour();
-		glm::vec3 ambient = material.getAmbientColour();
-		glm::vec3 spec = material.getSpecularColour();
-		auto diffTex = material.getDiffuseTexture();
-		auto specTex = material.getSpecularTexture();
-		auto shininess = material.getShininess();
-		auto isShiney = material.isShiny();
+		material = scene_->getMaterialById(instance.getMaterialId());
+		diffuse = material.getDiffuseColour();
+		ambient = material.getAmbientColour();
+		spec = material.getSpecularColour();
+		diffTex = material.getDiffuseTexture();
+		specTex = material.getSpecularTexture();
+		shininess = material.getShininess();
+		isShiney = material.isShiny();
 
-		//TODO: Move GLuints to start
-		GLuint projection_id = glGetUniformLocation(first_program_, "projection_view_model_xform");
-		glUniformMatrix4fv(projection_id, 1, GL_FALSE, glm::value_ptr(projection_view_mod_xform));
 
-		GLuint model_xform_id = glGetUniformLocation(first_program_, "model_xform");
-		glUniformMatrix4fv(model_xform_id, 1, GL_FALSE, glm::value_ptr(model_xform));
-
-		GLuint instance_diffuse_id = glGetUniformLocation(first_program_, "vertex_diffuse_colour");
-		glUniform3fv(instance_diffuse_id, 1, glm::value_ptr(diffuse));
-
-		GLuint instance_amb_id = glGetUniformLocation(first_program_, "vertex_ambient_colour");
-		glUniform3fv(instance_amb_id, 1, glm::value_ptr(ambient));
-
-		GLuint instance_spec_id = glGetUniformLocation(first_program_, "vertex_spec_colour");
-		glUniform3fv(instance_spec_id, 1, glm::value_ptr(spec));
-
-		GLuint instance_shiny_id = glGetUniformLocation(first_program_, "vertex_shininess");
-		glUniform1f(instance_shiny_id, shininess);
-
-		GLuint instance_is_shiny_id = glGetUniformLocation(first_program_, "is_vertex_shiney");
-		glUniform1f(instance_is_shiny_id, (float)isShiney);
+		glUniformMatrix4fv(uniforms["projection_view_model_xform"], 1, GL_FALSE, glm::value_ptr(projection_view_mod_xform));
+		glUniformMatrix4fv(uniforms["model_xform"], 1, GL_FALSE, glm::value_ptr(model_xform));
+		glUniform3fv(uniforms["vertex_diffuse_colour"], 1, glm::value_ptr(diffuse));
+		glUniform3fv(uniforms["vertex_ambient_colour"], 1, glm::value_ptr(ambient));
+		glUniform3fv(uniforms["vertex_spec_colour"], 1, glm::value_ptr(spec));
+		glUniform1f(uniforms["vertex_shininess"], shininess);
+		glUniform1f(uniforms["is_vertex_shiney"], (float)isShiney);
 
 		/*glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures[diffTex]);
@@ -507,11 +515,34 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 
 
 		//Drawing
-		//glDrawElementsInstancedBaseVertex(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), scene_->getInstancesByMeshId(instance.getMeshId()).size(), mesh.first_vertex_index);
+		//glDrawElementsInstancedBaseVertex(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), scene_->getInstancesByMeshId(instance.getMeshId()).size(), mesh.first_vertex_index); 
+
 		glDrawElementsBaseVertex(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), mesh.first_vertex_index);
 
+		
 	}
+	if (outlineMode)
+	{
+		outLineInt = 1;
+		glUniform1f(uniforms["outline"], outLineInt);
 
+		//Populate uniform variables
+		for (const auto& instance : scene_->getAllInstances())
+		{
+			glm::mat4 model_xform = glm::mat4(instance.getTransformationMatrix());
+			const MeshGL& mesh = meshes_[instance.getMeshId()];
+
+			projection_view_mod_xform = projection_xform * view_xform * model_xform;
+
+			glUniformMatrix4fv(uniforms["projection_view_model_xform"], 1, GL_FALSE, glm::value_ptr(projection_view_mod_xform));
+			glUniformMatrix4fv(uniforms["model_xform"], 1, GL_FALSE, glm::value_ptr(model_xform));
+
+			
+
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			glDrawElementsBaseVertex(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), mesh.first_vertex_index);
+		}
+	}
 	if (spikey)
 	{
 		glUseProgram(spikey_program_);
@@ -526,18 +557,10 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 			glm::mat4 projection_view_mod_xform = projection_xform * view_xform * model_xform;
 			glm::mat4 inverse_normal_xform = glm::transpose(glm::inverse(model_xform));
 
-			//TODO: Move GLuints to start
-			GLuint projection_id = glGetUniformLocation(spikey_program_, "projection_view_model_xform");
-			glUniformMatrix4fv(projection_id, 1, GL_FALSE, glm::value_ptr(projection_view_mod_xform));
-
-			GLuint model_xform_id = glGetUniformLocation(spikey_program_, "model_xform");
-			glUniformMatrix4fv(model_xform_id, 1, GL_FALSE, glm::value_ptr(model_xform));
-
-			GLuint inv_model_xform_id = glGetUniformLocation(spikey_program_, "normal_xform");
-			glUniformMatrix4fv(inv_model_xform_id, 1, GL_FALSE, glm::value_ptr(inverse_normal_xform));
-
-			//Drawing
-			//glDrawElementsInstancedBaseVertex(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), scene_->getInstancesByMeshId(instance.getMeshId()).size(), mesh.first_vertex_index);
+			glUniformMatrix4fv(uniforms["spikey_projection_view_model_xform"], 1, GL_FALSE, glm::value_ptr(projection_view_mod_xform));
+			glUniformMatrix4fv(uniforms["spikey_model_xform"], 1, GL_FALSE, glm::value_ptr(model_xform));
+			glUniformMatrix4fv(uniforms["spikey_normal_xform"], 1, GL_FALSE, glm::value_ptr(inverse_normal_xform));
+			
 			glDrawElementsBaseVertex(GL_POINTS, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), mesh.first_vertex_index);
 
 		}
