@@ -109,8 +109,16 @@ windowControlKeyboardChanged(std::shared_ptr<tygra::Window> window,
 	if (!down)
 		return;
 
+	// Added keybinds to close the window, change the rendered normal vector line length, a toggels for:
+	//the outline mode, render mode and whether or not to display the normal vector lines
 	switch (key_index)
 	{
+	case 'Q':
+		view_->AddToLength(-0.1f);
+		break;
+	case 'E':
+		view_->AddToLength(0.1f);
+		break;
 	case tygra::kWindowKeyF2:
 		view_->EnableSpikey();
 		break;
@@ -123,7 +131,13 @@ windowControlKeyboardChanged(std::shared_ptr<tygra::Window> window,
 	case tygra::kWindowKeyF5:
 		view_->CompileShaders();
 		break;
-	
+	//Query tyrone about this function
+	/*case tygra::kWindowKeyF6:
+		scene_->toggleCameraAnimation();
+		break;*/
+	case tygra::kWindowKeyEsc:
+		window->close();
+		break;
 	}
 }
 
