@@ -9,20 +9,20 @@ in vec3 vertex_tangent;
 in vec2 vertex_texcoord;
 
 out vec3 vertexPos;
-out vec3 normal;
-out vec2 text_coord;
 out vec3 vertexNormal;
+out vec2 text_coord;
+
 
 void main(void)
 {	
+	//Convert the noormals and positions into world space
 	vertexNormal = mat3(model_xform) *  vertex_normal;
 	vertexPos = mat4x3(model_xform) * vec4(vertex_position, 1.0);
-    //vec3 tex_colour = texture(mystery_sampler, vertex_texcoord).rgb;
-	normal = normalize(mat3(model_xform) *  vertex_normal);
-	//text_colour = tex_colour;
 
+
+	//Pass the texture coordinate for the vertex into the fragment shader
 	text_coord = vertex_texcoord;
 
-
+	//Set the position of the vertex to draw
 	gl_Position = projection_view_model_xform * vec4(vertex_position, 1.0);
 }

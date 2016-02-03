@@ -7,11 +7,7 @@
 #include <cassert>
 
 MyView::
-MyView() : hexTexture(0),
-		   hex1Texture(0),
-		   hex2Texture(0),
-		   hex3Texture(0),
-		   first_program_(0),
+MyView() : first_program_(0),
 		   spikey_program_(0)
 {
 }
@@ -26,12 +22,12 @@ setScene(std::shared_ptr<const SceneModel::Context> scene)
 	scene_ = scene;
 }
 
-void MyView::
-EnableSpikey()
-{
-	spikey = !spikey;
-}
+#pragma region Toggle functions
 
+/*
+A public function that switches the rendering mode between the 3 standard ones: rendering the vertex points,
+rendering the wireframe view and rendering the faces as per normal.
+*/
 void MyView::
 RenderMode()
 {
@@ -51,12 +47,49 @@ RenderMode()
 	}
 }
 
+/*
+A public toggle function that toggles whether one of the special rendering debug modes should be enabled.
+*/
 void MyView::
 ToggleOutlineMode()
 {
 	outlineMode = !outlineMode;
 }
 
+/*
+Clamp the length of the linesbetween 0 and 5 so they dont invert of becom to extreame and then add the clamped value thats
+passed in to the length variable so it can be kept over the application lifetime. This new value then overwrites the stored 
+value and only needs to be passed to the shader once for efficiency as its kept between rendering frames.
+*/
+void MyView::
+AddToLength(float val_)
+{
+	if (normalLineLength + val_ > 0 && normalLineLength + val_ < 5)
+		normalLineLength += val_;
+	glUniform1f(uniforms["spikey_normal_line_length"], normalLineLength);
+}
+
+/*
+Enable the spikey view rendering mode that utilises the second shader program and sets the initial normal line length
+This only needs to be set once because the uniform value will carry over to the required frames so they dont need to be
+constantly passed on every frame thats rendered.
+*/
+void MyView::
+EnableSpikey()
+{
+	spikey = !spikey;
+	glUniform1f(uniforms["spikey_normal_line_length"], normalLineLength);
+}
+
+#pragma endregion 
+
+#pragma region Shader compilation functions
+
+/*
+As this code is repeated for each shader type with only a few variables changing it made sense to cut down on the amount
+of repeate code and is called at the start of the shaders being compiled. The only things that change is the shader
+file name, the type of shader that OpenGL needs to compile and the handle the shader is associated with.
+*/
 void MyView::
 CompileShader(std::string shaderFileName, GLenum shaderType, GLuint& shaderVariable)
 {
@@ -75,11 +108,36 @@ CompileShader(std::string shaderFileName, GLenum shaderType, GLuint& shaderVaria
 	}
 }
 
+/*
+This code block is repeated for each shader program to check if the shader has been successfully linked. If the shadrer
+hasn't been linked successfully then it will output the linked error and log to the output window.
+*/
+bool MyView::
+CheckLinkStatus(GLuint shaderProgram)
+{
+	GLint link_status = 0;
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &link_status);
+	if (link_status != GL_TRUE) {
+		const int string_length = 1024;
+		GLchar log[string_length] = "";
+		glGetProgramInfoLog(shaderProgram, string_length, NULL, log);
+		std::cerr << log << std::endl;
+		return false;
+	}
+	return true;
+}
+
+/*
+The shader compilation code was spun off into its own function so that it could be called when I want to compile 
+the shaders using a hot key during run-time. This helped in speeding up development time as the entire application
+would not need to be closed before hand. It compiles the shaders into 2 shader programmes. The first 'first_program_'
+is used to drawn sponza normally and some basic graphics debugging features such as wireframe and point rendering.
+The second shader program 'spikey_program_' is used draw a debug version of the line drawing along a vertex positions' 
+normal vector. If there is an error when the shaders are compiled, then the error(s) for each shader are output to the
+console window and reference a specific line in a specific file.
+*/
 void MyView::CompileShaders()
 {
-
-	std::cout << "Compiling Shaders...";
-
 	CompileShader("sponza_vs.glsl", GL_VERTEX_SHADER, vertex_shader);
 	CompileShader("sponza_fs.glsl", GL_FRAGMENT_SHADER, fragment_shader);
 	CompileShader("spikeysponza_vs.glsl", GL_VERTEX_SHADER, spikeyvertex_shader);
@@ -109,43 +167,76 @@ void MyView::CompileShaders()
 	glDeleteShader(spikeyfragment_shader);
 	glLinkProgram(spikey_program_);
 
-
-	GLint link_status_normal = 0;
-	GLint link_status_spikey = 0;
-	glGetProgramiv(first_program_, GL_LINK_STATUS, &link_status_normal);
-	glGetProgramiv(spikey_program_, GL_LINK_STATUS, &link_status_spikey);
-	if (link_status_normal != GL_TRUE) {
-		const int string_length = 1024;
-		GLchar log[string_length] = "";
-		glGetProgramInfoLog(first_program_, string_length, NULL, log);
-		std::cerr << log << std::endl;
-	}
-	else
-		std::cout << "Standard Shader Compilation successful!" << std::endl;
-
-	if (link_status_spikey != GL_TRUE) {
-		const int string_length = 1024;
-		GLchar log[string_length] = "";
-		glGetProgramInfoLog(spikey_program_, string_length, NULL, log);
-		std::cerr << log << std::endl;
-	}
-	else
-		std::cout << "Spikey Shader Compilation successful!" << std::endl;
+	if(CheckLinkStatus(first_program_) && CheckLinkStatus(spikey_program_))
+		std::cout << "Shaders Compiled!" << std::endl;
 
 }
+
+#pragma endregion 
+
+#pragma region Texture Loading
+//Load the texture and pass the texture into an unordered map using the texture files' name as the key.
+//The textures need to be in the same folder as the application executable
+
+void MyView::
+LoadTexture(std::string textureName)
+{
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	GLuint texture = GLuint(0);
+	tygra::Image texture_image = tygra::imageFromPNG(textureName);
+	if (texture_image.containsData()) {
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		GLenum pixel_formats[] = { 0, GL_RED, GL_RG, GL_RGB, GL_RGBA };
+		glTexImage2D(GL_TEXTURE_2D,
+			0,
+			GL_RGBA,
+			texture_image.width(),
+			texture_image.height(),
+			0,
+			pixel_formats[texture_image.componentsPerPixel()],
+			texture_image.bytesPerComponent() == 1 ? GL_UNSIGNED_BYTE
+			: GL_UNSIGNED_SHORT,
+			texture_image.pixels());
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		textures[textureName] = texture;
+	}
+
+}
+
+#pragma endregion
 
 void MyView::
 windowViewWillStart(std::shared_ptr<tygra::Window> window)
 {
 	assert(scene_ != nullptr);
-
-	CompileShaders();
+	
+	//Application instructions
+	std::cout << "ABOUT" << std::endl;
+	std::cout << "Spice My Sponza - 3D Graphics Programming ICA1" << std::endl;
+	std::cout << "P4011584 - Frederic Babord 2015 - 2016" << std::endl <<std::endl;
+	std::cout << "INSTRUCTIONS" << std::endl;
 	std::cout << "Press F2 to view the direction of the vertex normals." << std::endl;
 	std::cout << "Press F3 to enable wireframe mode." << std::endl;
 	std::cout << "Press F4 to change rendering mode (Fill, Line, Point)." << std::endl;
-	std::cout << "Press F5 to recompile the shader." << std::endl;
-	
+	std::cout << "Press F5 to recompile the shader." << std::endl << std::endl;
+	std::cout << "Press Q to reduce the normal line length." << std::endl;
+	std::cout << "Press E to increase the normal line length." << std::endl << std::endl;
 
+	CompileShaders();
+	/*
+	Create and fill the vbos and vao in an interleaved manner from the scene data. Interleaving was chosen because
+	the data would arrive to the gpu in a stream that would be in the order it would need for the shader and specific
+	draw function to expect speeding up chache hits. The textures are also loaded on start so they can be assigned to 
+	maps and used in rendering the specific mesh using its material data.
+	*/
+
+#pragma region
 	SceneModel::GeometryBuilder builder;
 	std::vector<Vertex> vertices;
 	std::vector<SceneModel::InstanceId> elements;
@@ -212,109 +303,18 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	//LoadTexture("spec1.png", hex2Texture);
-	//LoadTexture("spec0.png", hexTexture);
-	tygra::Image texture_image = tygra::imageFromPNG("spec0.png");
-	if (texture_image.containsData()) {
-		glGenTextures(1, &hexTexture);
-		glBindTexture(GL_TEXTURE_2D, hexTexture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		GLenum pixel_formats[] = { 0, GL_RED, GL_RG, GL_RGB, GL_RGBA };
-		glTexImage2D(GL_TEXTURE_2D,
-			0,
-			GL_RGBA,
-			texture_image.width(),
-			texture_image.height(),
-			0,
-			pixel_formats[texture_image.componentsPerPixel()],
-			texture_image.bytesPerComponent() == 1 ? GL_UNSIGNED_BYTE
-			: GL_UNSIGNED_SHORT,
-			texture_image.pixels());
-		glGenerateMipmap(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-	textures["spec0.png"] = hexTexture;
+#pragma endregion //Load the mesh into buffers
 
-	//LoadTexture("diff1.png", hex1Texture);
-	//LoadTexture("diff0.png", hex3Texture);
-	texture_image = tygra::imageFromPNG("spec1.png");
-	if (texture_image.containsData()) {
-		glGenTextures(1, &hex1Texture);
-		glBindTexture(GL_TEXTURE_2D, hex1Texture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		GLenum pixel_formats[] = { 0, GL_RED, GL_RG, GL_RGB, GL_RGBA };
-		glTexImage2D(GL_TEXTURE_2D,
-			0,
-			GL_RGBA,
-			texture_image.width(),
-			texture_image.height(),
-			0,
-			pixel_formats[texture_image.componentsPerPixel()],
-			texture_image.bytesPerComponent() == 1 ? GL_UNSIGNED_BYTE
-			: GL_UNSIGNED_SHORT,
-			texture_image.pixels());
-		glGenerateMipmap(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-	textures["spec1.png"] = hex1Texture;
+#pragma region
 
-	texture_image = tygra::imageFromPNG("diff0.png");
-	if (texture_image.containsData()) {
-		glGenTextures(1, &hex2Texture);
-		glBindTexture(GL_TEXTURE_2D, hex2Texture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		GLenum pixel_formats[] = { 0, GL_RED, GL_RG, GL_RGB, GL_RGBA };
-		glTexImage2D(GL_TEXTURE_2D,
-			0,
-			GL_RGBA,
-			texture_image.width(),
-			texture_image.height(),
-			0,
-			pixel_formats[texture_image.componentsPerPixel()],
-			texture_image.bytesPerComponent() == 1 ? GL_UNSIGNED_BYTE
-			: GL_UNSIGNED_SHORT,
-			texture_image.pixels());
-		glGenerateMipmap(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-	textures["diff0.png"] = hex2Texture;
-
-
-	texture_image = tygra::imageFromPNG("diff1.png");
-	if (texture_image.containsData()) {
-		glGenTextures(1, &hex3Texture);
-		glBindTexture(GL_TEXTURE_2D, hex3Texture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		GLenum pixel_formats[] = { 0, GL_RED, GL_RG, GL_RGB, GL_RGBA };
-		glTexImage2D(GL_TEXTURE_2D,
-			0,
-			GL_RGBA,
-			texture_image.width(),
-			texture_image.height(),
-			0,
-			pixel_formats[texture_image.componentsPerPixel()],
-			texture_image.bytesPerComponent() == 1 ? GL_UNSIGNED_BYTE
-			: GL_UNSIGNED_SHORT,
-			texture_image.pixels());
-		glGenerateMipmap(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-	textures["diff1.png"] = hex3Texture;
-
-
+	//Load the textures into a map of handles
+	LoadTexture("diff0.png");
+	LoadTexture("diff1.png");
+	LoadTexture("spec1.png");
+	LoadTexture("spec2.png");
+	
+	//Create the light vector so there will be memory already reserved that can just be overwritten if values have been changed. This has been done on 
+	//start for effiences in the constant render loop function.
 	for (unsigned int i = 0; i < scene_->getAllLights().size(); ++i)
 	{
 		Light light;
@@ -324,8 +324,15 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 		lights.push_back(light);
 	}
 
+#pragma endregion // Textures and Lights
 
-	//Uniforms
+#pragma region
+	/*
+	Get the uniform locations of the uniform variables in the shader for each program where the varibale needs to be placed and bind it to a GLuint 
+	inside the unordered map. An unordered map was used because every time a new unifrom Gluint is added it doesn't need to re-order the map. This is
+	also performed on start because the locations of the uniforms wont need to be changed per frame so it will speed up the rendering function as it 
+	doesn't need to perform unnessacary computation.
+	*/
 	uniforms["projection_view_model_xform"] = glGetUniformLocation(first_program_, "projection_view_model_xform");
 	uniforms["model_xform"] = glGetUniformLocation(first_program_, "model_xform");
 	uniforms["vertex_diffuse_colour"] = glGetUniformLocation(first_program_, "vertex_diffuse_colour");
@@ -334,46 +341,24 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 	uniforms["vertex_shininess"] = glGetUniformLocation(first_program_, "vertex_shininess");
 	uniforms["is_vertex_shiney"] = glGetUniformLocation(first_program_, "is_vertex_shiney");
 	uniforms["camera_position"] = glGetUniformLocation(first_program_, "camera_position");
+	
+	uniforms["global_ambient_light"] = glGetUniformLocation(first_program_, "global_ambient_light");
+
 	uniforms["MAX_LIGHTS"] = glGetUniformLocation(first_program_, "MAX_LIGHTS");
 	uniforms["outline"] = glGetUniformLocation(first_program_, "outline");
+	uniforms["has_diff_tex"] = glGetUniformLocation(first_program_, "has_diff_tex");
 
 	uniforms["spikey_projection_view_model_xform"] = glGetUniformLocation(spikey_program_, "projection_view_model_xform");
 	uniforms["spikey_model_xform"] = glGetUniformLocation(spikey_program_, "model_xform");
 	uniforms["spikey_normal_xform"] = glGetUniformLocation(spikey_program_, "normal_xform");
-}
+	uniforms["spikey_normal_line_length"] = glGetUniformLocation(spikey_program_, "normal_vector_length");
 
-void MyView::LoadTexture(std::string textureName, GLuint texture)
-{
-	tygra::Image texture_image = tygra::imageFromPNG(textureName);
-	if (texture_image.containsData()) {
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		GLenum pixel_formats[] = { 0, GL_RED, GL_RG, GL_RGB, GL_RGBA };
-		glTexImage2D(GL_TEXTURE_2D,
-			0,
-			GL_RGBA,
-			texture_image.width(),
-			texture_image.height(),
-			0,
-			pixel_formats[texture_image.componentsPerPixel()],
-			texture_image.bytesPerComponent() == 1 ? GL_UNSIGNED_BYTE
-			: GL_UNSIGNED_SHORT,
-			texture_image.pixels());
-		glGenerateMipmap(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-	textures[textureName] = texture;
+#pragma endregion // Get the uniform locations
 
 }
 
 void MyView::
-windowViewDidReset(std::shared_ptr<tygra::Window> window,
-int width,
-int height)
+windowViewDidReset(std::shared_ptr<tygra::Window> window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
@@ -381,18 +366,15 @@ int height)
 void MyView::
 windowViewDidStop(std::shared_ptr<tygra::Window> window)
 {
+	/*
+	Delete the buffers in sponza and the shader programmes
+	*/
 	glDeleteProgram(first_program_);
 	glDeleteProgram(spikey_program_);
-	for (const auto& instance : scene_->getAllInstances()) {
 
-		/*glDeleteBuffers(1, &meshes_[instance.getMeshId()].position_vbo);
-		glDeleteBuffers(1, &meshes_[instance.getMeshId()].normal_vbo);
-		glDeleteBuffers(1, &meshes_[instance.getId()].tangent_vbo);
-		glDeleteBuffers(1, &meshes_[instance.getMeshId()].position_vbo);
-		glDeleteBuffers(1, &meshes_[instance.getMeshId()].textcoord_vbo);*/
-		/*glDeleteBuffers(1, &meshes_[instance.getMeshId()].element_vbo);
-		glDeleteVertexArrays(1, &meshes_[instance.getMeshId()].vao);*/
-	}
+	glDeleteBuffers(1, &vertex_vbo);
+	glDeleteBuffers(1, &element_vbo);
+	glDeleteVertexArrays(1, &vao);
 }
 
 void MyView::
@@ -410,12 +392,23 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	glGetIntegerv(GL_VIEWPORT, viewport_size);
 	const float aspect_ratio = viewport_size[2] / (float)viewport_size[3];
 
+	//Use the initial shader program to render sponza normally
+	glUseProgram(first_program_);
+
 	glm::mat4 projection_xform = glm::perspective(scene_->getCamera().getVerticalFieldOfViewInDegrees(), aspect_ratio, scene_->getCamera().getNearPlaneDistance(), scene_->getCamera().getFarPlaneDistance());
 	glm::mat4 view_xform = glm::lookAt(scene_->getCamera().getPosition(), scene_->getCamera().getPosition() + scene_->getCamera().getDirection(), scene_->getUpDirection());
 
-	glUseProgram(first_program_);
-
 	glUniform3fv(uniforms["camera_position"], 1, glm::value_ptr(scene_->getCamera().getPosition()));
+	
+
+#pragma region Update sponzas lighting for this frame
+
+	/*
+	Get the light data from the scene and pass out the data into a uniform array of light structs in the vertex shader
+	for each point light and the ambient light for the scene. The shader also needs to know how many lights are currently 
+	active and so that value is also passed out into the shader.
+	*/
+	
 	glUniform1f(uniforms["MAX_LIGHTS"], (GLfloat)scene_->getAllLights().size());
 
 	for (unsigned int i = 0; i < scene_->getAllLights().size(); ++i)
@@ -442,23 +435,19 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 		lightIntensityID = glGetUniformLocation(first_program_, intensity.c_str());
 		glUniform3fv(lightIntensityID, 1, glm::value_ptr(lights[i].intensity));
 	}
+	glUniform3fv(uniforms["global_ambient_light"], 1, glm::value_ptr(scene_->getAmbientLightIntensity()));
+
+#pragma endregion 
 
 	glBindVertexArray(vao);
-
-	SceneModel::Material material = scene_->getAllMaterials()[0];
-	glm::mat4 projection_view_mod_xform;
-	glm::mat4 inverse_normal_xform;
-
-	glm::vec3 diffuse;
-	glm::vec3 ambient;
-	glm::vec3 spec;
-	std::string diffTex;
-	std::string specTex;
-	float shininess;
-	bool isShiney;
-
+	
+#pragma region Set current rendering mode
+	/*
+	This swicthed the render mode based on what the current enumerated value is.
+	*/
 	switch (currentRenderMode)
 	{
+
 	case MyView::Point:
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		break;
@@ -471,16 +460,21 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	default:
 		break;
 	}
+#pragma endregion 
 
+#pragma region Draw call for rendering normal sponza
 
 	float outLineInt = 0;
-
 	glUniform1f(uniforms["outline"], outLineInt);
+
+	glm::mat4 projection_view_mod_xform;
+	glm::mat4 inverse_normal_xform;
+
+	//Initialised to first element as there is no default constructor for a material
+	SceneModel::Material material = scene_->getAllMaterials()[0];
 
 	for (const auto& instance : scene_->getAllInstances())
 	{
-		//Populate uniform variables
-
 		glm::mat4 model_xform = glm::mat4(instance.getTransformationMatrix());
 		const MeshGL& mesh = meshes_[instance.getMeshId()];
 
@@ -488,45 +482,52 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 		inverse_normal_xform = view_xform * model_xform;
 
 		material = scene_->getMaterialById(instance.getMaterialId());
-		diffuse = material.getDiffuseColour();
-		ambient = material.getAmbientColour();
-		spec = material.getSpecularColour();
-		diffTex = material.getDiffuseTexture();
-		specTex = material.getSpecularTexture();
-		shininess = material.getShininess();
-		isShiney = material.isShiny();
-
 
 		glUniformMatrix4fv(uniforms["projection_view_model_xform"], 1, GL_FALSE, glm::value_ptr(projection_view_mod_xform));
 		glUniformMatrix4fv(uniforms["model_xform"], 1, GL_FALSE, glm::value_ptr(model_xform));
-		glUniform3fv(uniforms["vertex_diffuse_colour"], 1, glm::value_ptr(diffuse));
-		glUniform3fv(uniforms["vertex_ambient_colour"], 1, glm::value_ptr(ambient));
-		glUniform3fv(uniforms["vertex_spec_colour"], 1, glm::value_ptr(spec));
-		glUniform1f(uniforms["vertex_shininess"], shininess);
-		glUniform1f(uniforms["is_vertex_shiney"], (float)isShiney);
+		glUniform3fv(uniforms["vertex_diffuse_colour"], 1, glm::value_ptr(material.getDiffuseColour()));
+		glUniform3fv(uniforms["vertex_ambient_colour"], 1, glm::value_ptr(material.getAmbientColour()));
+		glUniform3fv(uniforms["vertex_spec_colour"], 1, glm::value_ptr(material.getSpecularColour()));
+		glUniform1f(uniforms["vertex_shininess"], material.getShininess());
+		glUniform1f(uniforms["is_vertex_shiney"], (float)material.isShiny());
+		
+		if (material.getDiffuseTexture() != "")
+		{
+			glUniform1f(uniforms["has_diff_tex"], 1);
 
-		/*glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textures[diffTex]);
-		glUniform1i(glGetUniformLocation(first_program_, "diffuse_texture"), 0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, textures[material.getDiffuseTexture()]);
+			glUniform1i(glGetUniformLocation(first_program_, "diffuse_texture"), 0);
+		}
+		else
+			glUniform1f(uniforms["has_diff_tex"], 0);
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textures[specTex]);
-		glUniform1i(glGetUniformLocation(first_program_, "specular_texture"), 0);*/
-
-
-		//Drawing
-		//glDrawElementsInstancedBaseVertex(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), scene_->getInstancesByMeshId(instance.getMeshId()).size(), mesh.first_vertex_index); 
-
+		if (material.isShiny())
+		{
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, textures[material.getSpecularTexture()]);
+			glUniform1i(glGetUniformLocation(first_program_, "specular_texture"), 2);
+		}
+		
 		glDrawElementsBaseVertex(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), mesh.first_vertex_index);
 
 		
 	}
+
+#pragma endregion 
+
+#pragma region Draw call for outline mode of normal sponza
+	/*
+	When the user presses the F3 key, they enable the wireframe mode, in this mode, sponza is drawn a second time but
+	no lighting calculations are done and it switches the rendering mode from filling the triangles to only rendering
+	lines between the vertex points. This is another useful method of debugging as it is simpler to see how the textures
+	align with the meshs vertecies and whether they are in the approriate locations with no deformaties.
+	*/
 	if (outlineMode)
 	{
 		outLineInt = 1;
 		glUniform1f(uniforms["outline"], outLineInt);
 
-		//Populate uniform variables
 		for (const auto& instance : scene_->getAllInstances())
 		{
 			glm::mat4 model_xform = glm::mat4(instance.getTransformationMatrix());
@@ -537,20 +538,28 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 			glUniformMatrix4fv(uniforms["projection_view_model_xform"], 1, GL_FALSE, glm::value_ptr(projection_view_mod_xform));
 			glUniformMatrix4fv(uniforms["model_xform"], 1, GL_FALSE, glm::value_ptr(model_xform));
 
-			
-
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			glDrawElementsBaseVertex(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), mesh.first_vertex_index);
 		}
 	}
+#pragma endregion 
+
+#pragma region Draw call for Spike My Sponza
+	/*
+	When the user presses the F2 key, a second shader program is used which has been created with the addition of
+	a geometary shader. The geometary shader takes in specific uniforms in order to draw lines along the vertex's 
+	normal vector. The geomerty shader was used to create the toggelable lines because it was the cleanest method 
+	that I found after reaserching how to do this without defaulting to an older version of OpenGL due to depreciated 
+	functions. I have also found there is more control over how the lines can be drawn and how they are represented in 
+	this manner with a simpler and more understanding workflow through the opengl pipeline.
+	*/
 	if (spikey)
 	{
+		//Switch shader programms so a normal debug version of the shaders can be used for the next render call
 		glUseProgram(spikey_program_);
 
 		for (const auto& instance : scene_->getAllInstances())
 		{
-			//Populate uniform variables
-
 			glm::mat4 model_xform = glm::mat4(instance.getTransformationMatrix());
 			const MeshGL& mesh = meshes_[instance.getMeshId()];
 
@@ -562,7 +571,7 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 			glUniformMatrix4fv(uniforms["spikey_normal_xform"], 1, GL_FALSE, glm::value_ptr(inverse_normal_xform));
 			
 			glDrawElementsBaseVertex(GL_POINTS, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), mesh.first_vertex_index);
-
 		}
 	}
+#pragma endregion 
 }

@@ -9,8 +9,6 @@
 #include <map>
 #include <unordered_map>
 
-
-
 class MyView : public tygra::WindowViewDelegate
 {
 public:
@@ -19,48 +17,48 @@ public:
 	
     ~MyView();
 
-    void
-    setScene(std::shared_ptr<const SceneModel::Context> scene);
+    void setScene(std::shared_ptr<const SceneModel::Context> scene);
+
+#pragma region My External Faceing Function Definitions
 	void CompileShaders();
 	void EnableSpikey();
 	void RenderMode();
 	void ToggleOutlineMode();
+	void AddToLength(float val_);
+#pragma endregion
 
 private:
+
+#pragma region Private Function Definitions
+
 	void CompileShader(std::string shaderFileName, GLenum shaderType, GLuint& shaderVariable);
+	
+	bool CheckLinkStatus(GLuint shaderProgram);
 
 	std::string GenerateUniforms(GLuint program, std::string name_){}
 	
-	void LoadTexture(std::string textureName, GLuint texture);
+	void LoadTexture(std::string textureName);
 
     void windowViewWillStart(std::shared_ptr<tygra::Window> window) override;
 	
-    void
-    windowViewDidReset(std::shared_ptr<tygra::Window> window,
-                       int width,
-                       int height) override;
+    void windowViewDidReset(std::shared_ptr<tygra::Window> window, int width, int height) override;
 
-    void
-    windowViewDidStop(std::shared_ptr<tygra::Window> window) override;
+    void windowViewDidStop(std::shared_ptr<tygra::Window> window) override;
     
-    void
-    windowViewRender(std::shared_ptr<tygra::Window> window) override;
+    void windowViewRender(std::shared_ptr<tygra::Window> window) override;
 
-    std::shared_ptr<const SceneModel::Context> scene_;
+#pragma endregion
 
-	GLuint hexTexture;
-	GLuint hex1Texture;
-	GLuint hex2Texture;
-	GLuint hex3Texture;
-	GLuint first_program_;
-	GLuint spikey_program_;
-	/*GLuint blockIndex;
-	GLint blockSize;
-	GLubyte * blockBuffer;
-	GLuint indices[5];
-	GLint offset[5];
-	GLuint uboHandle;*/
-	
+#pragma region Enumeration Definitions
+	enum RenderMode_
+	{
+		Point,
+		Wireframe,
+		Face
+	};
+#pragma endregion
+
+#pragma region Structure Definitions
 	struct Light
 	{
 		glm::vec3 position;
@@ -71,8 +69,6 @@ private:
 		glm::vec3 intensity;
 	};
 
-	std::vector<Light> lights;
-
 	struct Vertex
 	{
 		glm::vec3 position;
@@ -81,10 +77,6 @@ private:
 		glm::vec2 texcoord;
 	};
 
-	GLuint vertex_vbo;
-	GLuint element_vbo; // VertexBufferObject for the elements (indices)
-	GLuint vao; // VertexArrayObject for the shape's vertex array settings
-
 	struct MeshGL
 	{
 		GLuint first_element_index;
@@ -92,28 +84,41 @@ private:
 		GLuint first_vertex_index;
 	};
 
+#pragma endregion
+
+#pragma region STL Container variables
+
+	std::vector<Light> lights;
+	std::map<SceneModel::MeshId, MeshGL> meshes_;
+	std::unordered_map<std::string, GLuint> textures;
+	std::unordered_map<std::string, GLuint> uniforms;
+
+#pragma endregion
+
+#pragma region Standard Variables
+
+	std::shared_ptr<const SceneModel::Context> scene_;
+
+	GLuint first_program_;
+	GLuint spikey_program_;
+
+	GLuint vertex_vbo;
+	GLuint element_vbo; // VertexBufferObject for the elements (indices)
+	GLuint vao; // VertexArrayObject for the shape's vertex array settings
+
 	GLuint vertex_shader;
 	GLuint fragment_shader;
 
 	GLuint spikeyvertex_shader;
 	GLuint spikeyfragment_shader;
 	GLuint geometary_shader;
-
-	std::map<SceneModel::MeshId, MeshGL> meshes_;
-	int windowWidth, windowHeight = 0;
-
-    
-	std::unordered_map<std::string, GLuint> textures;
-	std::unordered_map<std::string, GLuint> uniforms;
+	
 	bool spikey = false;
-
-	enum RenderMode_
-	{
-		Point,
-		Wireframe,
-		Face
-	};
-
 	bool outlineMode = false;
+
+	float normalLineLength = 1.0f;
+	int windowWidth, windowHeight = 0;
+	
 	RenderMode_ currentRenderMode = RenderMode_::Face;
+#pragma endregion
 };
