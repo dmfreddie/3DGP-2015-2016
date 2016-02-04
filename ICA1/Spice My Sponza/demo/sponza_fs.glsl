@@ -7,6 +7,15 @@ struct Light
 	vec3 intensity;
 };
 
+//struct LightData
+//{
+//	vec3 position;
+//	vec3 intensity;
+//	float range;
+//};
+
+//uniform LightData LightBlock[22];
+
 uniform float MAX_LIGHTS;
 uniform Light LightSource[22];
 uniform vec3 camera_position;
@@ -30,6 +39,8 @@ in vec2 text_coord;
 
 out vec4 fragment_colour;
 
+float specular_smudge_factor = 1.0;
+
 void main(void)
 {	
 	//Wireframe rendering colour
@@ -39,47 +50,52 @@ void main(void)
 	}
 	else
 	{
-		vec3 col = vec3(0, 0, 0);
+		vec3 colour = global_ambient_light *  vertex_ambient_colour;
 		float diffuse_intensity = 0.f;
-
+		vec3 diffuseMat = vertex_diffuse_colour;
 		vec3 N = normalize(vertexNormal);
 		vec3 vertexToEye = normalize(camera_position - vertexPos);
 		vec3 specularColour = vec3(0, 0, 0);
+		float specularFactor = 0;
 
 		for (int i = 0; i < MAX_LIGHTS; i++)
 		{
-			float att = 0.0f;
+			float attenuation = 0.0f;
 			vec3 LightPosition = LightSource[i].position;
 			vec3 L = normalize(LightSource[i].position - vertexPos);
 			float dist = distance(LightSource[i].position, vertexPos);
-			att = 1 - smoothstep(0.0, LightSource[i].range, dist);
+			attenuation = 1 - smoothstep(0.0, LightSource[i].range, dist);
 
-			if (att > 0)
+			if (attenuation > 0 )
 			{
 
-				diffuse_intensity = max(0, dot(L, N)) * att;
+				diffuse_intensity = max(0, dot(L, N)) * attenuation;
+				
+				if(has_diff_tex > 0)
+					diffuseMat = vertex_diffuse_colour * diffuse_intensity * texture2D(diffuse_texture, text_coord).rgb * vertex_diffuse_colour;
+				else
+					diffuseMat = vertex_diffuse_colour * diffuse_intensity;
 
 				if (is_vertex_shiney > 0 && diffuse_intensity > 0)
 				{
-					vec3 lightReflection = normalize(reflect(L, N));
-					float specularFactor = max(0.0, dot(vertexToEye, lightReflection));
+					vec3 lightReflection = normalize(reflect(-L, N));
+					specularFactor = max(0.0, dot(vertexToEye, lightReflection));
 
-					if (specularFactor > 0)
+					if (specularFactor >0)
 					{
-						specularFactor = pow(specularFactor, vertex_shininess);
-						specularColour = LightSource[i].intensity *  vertex_spec_colour * specularFactor * att;
-						col += LightSource[i].intensity * diffuse_intensity * specularColour * texture2D(specular_texture, text_coord).rgb;
-						continue;
+						float specularIntensity = 0;
+						specularIntensity = pow(specularFactor, vertex_shininess) * attenuation;
+						specularColour = (vertex_spec_colour * texture2D(specular_texture, text_coord).r) * specularIntensity * specular_smudge_factor ;
+						colour +=  specularColour;
 					}
 				}
-				col += LightSource[i].intensity * diffuse_intensity;
+				colour += LightSource[i].intensity * diffuseMat;
 			}
+			
 		}
-		col *= vertex_diffuse_colour + vertex_ambient_colour * global_ambient_light;
-
-		if(has_diff_tex == 1)
-			fragment_colour = vec4(col   * texture2D(diffuse_texture, text_coord).rgb, 1.0);
-		else
-			fragment_colour = vec4(col, 1.0);
+		fragment_colour = vec4(colour, 1.0);
+		
 	}
+
+	
 }

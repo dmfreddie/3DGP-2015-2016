@@ -66,7 +66,6 @@ AddToLength(float val_)
 {
 	if (normalLineLength + val_ > 0 && normalLineLength + val_ < 5)
 		normalLineLength += val_;
-	glUniform1f(uniforms["spikey_normal_line_length"], normalLineLength);
 }
 
 /*
@@ -78,7 +77,6 @@ void MyView::
 EnableSpikey()
 {
 	spikey = !spikey;
-	glUniform1f(uniforms["spikey_normal_line_length"], normalLineLength);
 }
 
 #pragma endregion 
@@ -355,6 +353,64 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 
 #pragma endregion // Get the uniform locations
 
+	//GLint blockSize;
+	//GLuint blockIndex = glGetUniformBlockIndex(first_program_, "LightBlock");
+	//glGetActiveUniformBlockiv(first_program_, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
+	//GLubyte * blockBuffer = (GLubyte *)malloc(blockSize);
+	//// Query for the offsets of each block variable
+	//const GLchar *names[] = { "position", "intensity", "range" };
+	//GLuint indices[3];
+	//glGetUniformIndices(first_program_, 3, names, indices);
+	//GLint offset[3];
+	//glGetActiveUniformsiv(first_program_, 3, indices, GL_UNIFORM_OFFSET, offset);
+
+	//GLfloat position[] = { 0.0f, 0.0f, 0.0f };
+	//GLfloat intensity[] = { 1.0f, 1.0f, 0.75f };
+	//GLfloat range = 0.25f;
+
+	//memcpy(blockBuffer + offset[0], position, 3 * sizeof(GLfloat));
+	//memcpy(blockBuffer + offset[1], intensity, 3 * sizeof(GLfloat));
+	//memcpy(blockBuffer + offset[2], &range, sizeof(GLfloat));
+
+	//GLuint uboHandle;
+	//glGenBuffers(1, &uboHandle);
+	//glBindBuffer(GL_UNIFORM_BUFFER, uboHandle);
+	//glBufferData(GL_UNIFORM_BUFFER, blockSize, blockBuffer, GL_DYNAMIC_DRAW);
+
+	//glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, uboHandle);
+
+
+	//for (unsigned int i = 0; i < scene_->getAllLights().size(); ++i)
+	//{
+	//	Light light;
+	//	light.position = scene_->getAllLights()[i].getPosition();
+	//	light.range = scene_->getAllLights()[i].getRange();
+	//	light.intensity = scene_->getAllLights()[i].getIntensity();
+	//	lights.push_back(light);
+	//}
+	//
+
+	
+	/*for (int i = 0; i < scene_->getAllLights().size(); ++i)
+	{
+		lightBlock[i].position = scene_->getAllLights()[i].getPosition();
+		lightBlock[i].intensity = scene_->getAllLights()[i].getIntensity();
+		lightBlock[i].range = scene_->getAllLights()[i].getRange();
+	}
+
+	glBindBuffer(GL_UNIFORM_BUFFER, lightBlock_ubo);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(lightBlock), &lightBlock, GL_STREAM_DRAW);
+
+	glGenBuffers(1, &lightBlock_ubo);
+	glBindBuffer(GL_UNIFORM_BUFFER, lightBlock_ubo);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(lightBlock), nullptr, GL_STREAM_DRAW);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, lightBlock_ubo);
+	glUniformBlockBinding(first_program_, glGetUniformBlockIndex(first_program_, "LightBlock"), 0);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 1, lightBlock_ubo);
+	glUniformBlockBinding(first_program_, glGetUniformBlockIndex(first_program_, "LightBlock"), 1);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 2, lightBlock_ubo);
+	glUniformBlockBinding(first_program_, glGetUniformBlockIndex(first_program_, "LightBlock"), 2);*/
+
 }
 
 void MyView::
@@ -504,9 +560,9 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 
 		if (material.isShiny())
 		{
-			glActiveTexture(GL_TEXTURE2);
+			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, textures[material.getSpecularTexture()]);
-			glUniform1i(glGetUniformLocation(first_program_, "specular_texture"), 2);
+			glUniform1i(glGetUniformLocation(first_program_, "specular_texture"), 1);
 		}
 		
 		glDrawElementsBaseVertex(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), mesh.first_vertex_index);
@@ -553,10 +609,12 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	functions. I have also found there is more control over how the lines can be drawn and how they are represented in 
 	this manner with a simpler and more understanding workflow through the opengl pipeline.
 	*/
+	glUseProgram(spikey_program_);
+	glUniform1f(uniforms["spikey_normal_line_length"], normalLineLength);
 	if (spikey)
 	{
 		//Switch shader programms so a normal debug version of the shaders can be used for the next render call
-		glUseProgram(spikey_program_);
+		
 
 		for (const auto& instance : scene_->getAllInstances())
 		{

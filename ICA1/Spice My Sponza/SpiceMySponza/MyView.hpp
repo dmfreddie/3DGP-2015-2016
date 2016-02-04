@@ -121,4 +121,16 @@ private:
 	
 	RenderMode_ currentRenderMode = RenderMode_::Face;
 #pragma endregion
+
+
+	struct LightBlock
+	{
+		glm::vec3 position;
+		glm::vec3 intensity;
+		float range;
+	};
+
+	LightBlock *lightBlock = new LightBlock[22];
+	GLuint lightBlock_ubo;
+
 };

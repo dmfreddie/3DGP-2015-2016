@@ -1,4 +1,4 @@
-﻿Build started 03/02/2016 19:55:10.
+﻿Build started 04/02/2016 10:04:03.
      1>Project "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\SceneModel\SceneModel.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Iinclude /I"U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external/include" /Zi /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _LIB /D _UNICODE /D UNICODE /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"build\Debug\\" /Fd"lib\Win32\v120\Debug\SceneModel.pdb" /Gd /TP /analyze- /errorReport:prompt src\Camera.cpp src\Context.cpp src\GeometryBuilder.cpp src\Instance.cpp src\Light.cpp src\Material.cpp src\Mesh.cpp
@@ -24,8 +24,8 @@
          xcopy /E /S /I /Y "include" "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\include"
          xcopy /E /S /I /Y "lib" "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\lib"
          :VCEnd
-         File not found - doc
          0 File(s) copied
+         File not found - doc
          include\SceneModel\Camera.hpp
          include\SceneModel\GeometryBuilder.hpp
          include\SceneModel\Instance.hpp
@@ -43,4 +43,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:11.37
+Time Elapsed 00:00:18.31
