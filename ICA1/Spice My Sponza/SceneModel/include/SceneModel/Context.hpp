@@ -52,7 +52,7 @@ private:
 
     std::shared_ptr<FirstPersonMovement> camera_movement_;
     Camera camera_;
-	bool animate_camera_{ true };
+	bool animate_camera_{ false };
 
     std::vector<Light> lights_;
 

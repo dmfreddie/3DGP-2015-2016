@@ -66,7 +66,6 @@ AddToLength(float val_)
 {
 	if (normalLineLength + val_ > 0 && normalLineLength + val_ < 5)
 		normalLineLength += val_;
-	glUniform1f(uniforms["spikey_normal_line_length"], normalLineLength);
 }
 
 /*
@@ -78,7 +77,6 @@ void MyView::
 EnableSpikey()
 {
 	spikey = !spikey;
-	glUniform1f(uniforms["spikey_normal_line_length"], normalLineLength);
 }
 
 #pragma endregion 
@@ -355,6 +353,8 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 
 #pragma endregion // Get the uniform locations
 
+	glUniform1f(uniforms["spikey_normal_line_length"], normalLineLength);
+
 }
 
 void MyView::
@@ -504,9 +504,9 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 
 		if (material.isShiny())
 		{
-			glActiveTexture(GL_TEXTURE2);
+			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, textures[material.getSpecularTexture()]);
-			glUniform1i(glGetUniformLocation(first_program_, "specular_texture"), 2);
+			glUniform1i(glGetUniformLocation(first_program_, "specular_texture"), 1);
 		}
 		
 		glDrawElementsBaseVertex(GL_TRIANGLES, mesh.element_count, GL_UNSIGNED_INT, (GLvoid*)(mesh.first_element_index * sizeof(int)), mesh.first_vertex_index);
@@ -553,10 +553,12 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	functions. I have also found there is more control over how the lines can be drawn and how they are represented in 
 	this manner with a simpler and more understanding workflow through the opengl pipeline.
 	*/
+	glUseProgram(spikey_program_);
+	glUniform1f(uniforms["spikey_normal_line_length"], normalLineLength);
 	if (spikey)
 	{
 		//Switch shader programms so a normal debug version of the shaders can be used for the next render call
-		glUseProgram(spikey_program_);
+		
 
 		for (const auto& instance : scene_->getAllInstances())
 		{
