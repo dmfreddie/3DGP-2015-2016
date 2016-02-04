@@ -7,6 +7,15 @@ struct Light
 	vec3 intensity;
 };
 
+//struct LightData
+//{
+//	vec3 position;
+//	vec3 intensity;
+//	float range;
+//};
+
+//uniform LightData LightBlock[22];
+
 uniform float MAX_LIGHTS;
 uniform Light LightSource[22];
 uniform vec3 camera_position;
@@ -30,6 +39,8 @@ in vec2 text_coord;
 
 out vec4 fragment_colour;
 
+float specular_smudge_factor = 1.0;
+
 void main(void)
 {	
 	//Wireframe rendering colour
@@ -39,9 +50,9 @@ void main(void)
 	}
 	else
 	{
-		vec3 colour = global_ambient_light * vertex_diffuse_colour * vertex_ambient_colour;
+		vec3 colour = global_ambient_light *  vertex_ambient_colour;
 		float diffuse_intensity = 0.f;
-		vec3 diffuseMat = vec3(0, 0, 0);
+		vec3 diffuseMat = vertex_diffuse_colour;
 		vec3 N = normalize(vertexNormal);
 		vec3 vertexToEye = normalize(camera_position - vertexPos);
 		vec3 specularColour = vec3(0, 0, 0);
@@ -55,31 +66,36 @@ void main(void)
 			float dist = distance(LightSource[i].position, vertexPos);
 			attenuation = 1 - smoothstep(0.0, LightSource[i].range, dist);
 
-			if (attenuation > 0)
+			if (attenuation > 0 )
 			{
 
 				diffuse_intensity = max(0, dot(L, N)) * attenuation;
 				
-				diffuseMat = diffuse_intensity * texture2D(diffuse_texture, text_coord).rgb;
-				
+				if(has_diff_tex > 0)
+					diffuseMat = vertex_diffuse_colour * diffuse_intensity * texture2D(diffuse_texture, text_coord).rgb * vertex_diffuse_colour;
+				else
+					diffuseMat = vertex_diffuse_colour * diffuse_intensity;
+
 				if (is_vertex_shiney > 0 && diffuse_intensity > 0)
 				{
 					vec3 lightReflection = normalize(reflect(-L, N));
 					specularFactor = max(0.0, dot(vertexToEye, lightReflection));
 
-					if (specularFactor > 0)
+					if (specularFactor >0)
 					{
 						float specularIntensity = 0;
 						specularIntensity = pow(specularFactor, vertex_shininess) * attenuation;
-						specularColour = LightSource[i].intensity * (vertex_spec_colour * texture2D(specular_texture, text_coord).r) * specularIntensity ;
-						colour += LightSource[i].intensity * diffuseMat * specularColour;
-						continue;
+						specularColour = (vertex_spec_colour * texture2D(specular_texture, text_coord).r) * specularIntensity * specular_smudge_factor ;
+						colour +=  specularColour;
 					}
 				}
 				colour += LightSource[i].intensity * diffuseMat;
 			}
+			
 		}
-
 		fragment_colour = vec4(colour, 1.0);
+		
 	}
+
+	
 }

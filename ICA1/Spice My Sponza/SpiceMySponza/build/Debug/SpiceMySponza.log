@@ -1,4 +1,4 @@
-﻿Build started 04/02/2016 12:26:24.
+﻿Build started 04/02/2016 14:01:04.
      1>Project "U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\SpiceMySponza\SpiceMySponza.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"U:\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external/include" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"build\Debug\\" /Fd"build\Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt MyView.cpp
@@ -24,4 +24,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:55.47
+Time Elapsed 00:00:31.51
