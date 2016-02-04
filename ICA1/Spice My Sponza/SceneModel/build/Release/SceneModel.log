@@ -1,0 +1,48 @@
+﻿Build started 04/02/2016 19:54:19.
+     1>Project "\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\SceneModel\SceneModel.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Iinclude /I"\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external/include" /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _LIB /D _UNICODE /D UNICODE /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"build\Release\\" /Fd"lib\Win32\v120\Release\SceneModel.pdb" /Gd /TP /analyze- /errorReport:prompt src\Camera.cpp src\Context.cpp src\GeometryBuilder.cpp src\Instance.cpp src\Light.cpp src\Material.cpp src\Mesh.cpp
+         Camera.cpp
+         Context.cpp
+         GeometryBuilder.cpp
+         Instance.cpp
+         Light.cpp
+         Material.cpp
+         Mesh.cpp
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\Lib.exe /OUT:"lib\Win32\v120\Release\SceneModel.lib" /NOLOGO build\Release\Camera.obj
+         build\Release\Context.obj
+         build\Release\GeometryBuilder.obj
+         build\Release\Instance.obj
+         build\Release\Light.obj
+         build\Release\Material.obj
+         build\Release\Mesh.obj
+         Mesh.obj : MSIL .netmodule or module compiled with /GL found; restarting link with /LTCG; add /LTCG to the link command line to improve linker performance
+         SceneModel.vcxproj -> \\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\SceneModel\lib\Win32\v120\Release\SceneModel.lib
+       PostBuildEvent:
+         xcopy /E /S /I /Y "doc" "\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\doc"
+         xcopy /E /S /I /Y "include" "\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\include"
+         xcopy /E /S /I /Y "lib" "\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\lib"
+         :VCEnd
+         0 File(s) copied
+         File not found - doc
+         include\SceneModel\Camera.hpp
+         include\SceneModel\GeometryBuilder.hpp
+         include\SceneModel\Instance.hpp
+         include\SceneModel\Light.hpp
+         include\SceneModel\Material.hpp
+         include\SceneModel\Mesh.hpp
+         include\SceneModel\SceneModel.hpp
+         include\SceneModel\SceneModel_fwd.hpp
+         include\SceneModel\Context.hpp
+         9 File(s) copied
+         lib\Win32\v120\Debug\scenemodel.pdb
+         lib\Win32\v120\Debug\SceneModel.lib
+         lib\Win32\v120\Release\scenemodel.pdb
+         lib\Win32\v120\Release\SceneModel.lib
+         4 File(s) copied
+     1>Done Building Project "\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\SceneModel\SceneModel.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:17.21

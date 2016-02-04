@@ -5,6 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <cassert>
+#include <stdlib.h>
 
 MyView::
 MyView() : first_program_(0),
@@ -60,12 +61,24 @@ ToggleOutlineMode()
 Clamp the length of the linesbetween 0 and 5 so they dont invert of becom to extreame and then add the clamped value thats
 passed in to the length variable so it can be kept over the application lifetime. This new value then overwrites the stored 
 value and only needs to be passed to the shader once for efficiency as its kept between rendering frames.
+@param The length to add to the line
 */
 void MyView::
 AddToLength(float val_)
 {
 	if (normalLineLength + val_ > 0 && normalLineLength + val_ < 5)
 		normalLineLength += val_;
+}
+
+/*
+Toggle the intensity of the specular smudge factor if your not able to clearly see it at default levels
+@param The intensity of the smudge
+*/
+void MyView::
+AddToSpecSmudge(float val_)
+{
+	if (specularSmudge + val_ > 0)
+		specularSmudge += val_;
 }
 
 /*
@@ -87,6 +100,9 @@ EnableSpikey()
 As this code is repeated for each shader type with only a few variables changing it made sense to cut down on the amount
 of repeate code and is called at the start of the shaders being compiled. The only things that change is the shader
 file name, the type of shader that OpenGL needs to compile and the handle the shader is associated with.
+@param The name of the shader file
+@param The OpenGL shadr type to be compiled
+@param The OpenGL handle to the shader program
 */
 void MyView::
 CompileShader(std::string shaderFileName, GLenum shaderType, GLuint& shaderVariable)
@@ -109,6 +125,8 @@ CompileShader(std::string shaderFileName, GLenum shaderType, GLuint& shaderVaria
 /*
 This code block is repeated for each shader program to check if the shader has been successfully linked. If the shadrer
 hasn't been linked successfully then it will output the linked error and log to the output window.
+@param The OpenGL handle to the shader program
+@return Whethher the shader has been successfully linked
 */
 bool MyView::
 CheckLinkStatus(GLuint shaderProgram)
@@ -164,18 +182,53 @@ void MyView::CompileShaders()
 	glAttachShader(spikey_program_, spikeyfragment_shader);
 	glDeleteShader(spikeyfragment_shader);
 	glLinkProgram(spikey_program_);
-
 	if(CheckLinkStatus(first_program_) && CheckLinkStatus(spikey_program_))
 		std::cout << "Shaders Compiled!" << std::endl;
 
+	Getuniforms();
+}
+
+
+void MyView::Getuniforms()
+{
+#pragma region
+	/*
+	Get the uniform locations of the uniform variables in the shader for each program where the varibale needs to be placed and bind it to a GLuint
+	inside the unordered map. An unordered map was used because every time a new unifrom Gluint is added it doesn't need to re-order the map. This is
+	also performed on start because the locations of the uniforms wont need to be changed per frame so it will speed up the rendering function as it
+	doesn't need to perform unnessacary computation.
+	*/
+	uniforms["projection_view_model_xform"] = glGetUniformLocation(first_program_, "projection_view_model_xform");
+	uniforms["model_xform"] = glGetUniformLocation(first_program_, "model_xform");
+	uniforms["vertex_diffuse_colour"] = glGetUniformLocation(first_program_, "vertex_diffuse_colour");
+	uniforms["vertex_ambient_colour"] = glGetUniformLocation(first_program_, "vertex_ambient_colour");
+	uniforms["vertex_spec_colour"] = glGetUniformLocation(first_program_, "vertex_spec_colour");
+	uniforms["vertex_shininess"] = glGetUniformLocation(first_program_, "vertex_shininess");
+	uniforms["specular_smudge_factor"] = glGetUniformLocation(first_program_, "specular_smudge_factor");
+	uniforms["is_vertex_shiney"] = glGetUniformLocation(first_program_, "is_vertex_shiney");
+	uniforms["camera_position"] = glGetUniformLocation(first_program_, "camera_position");
+
+	uniforms["global_ambient_light"] = glGetUniformLocation(first_program_, "global_ambient_light");
+
+	uniforms["MAX_LIGHTS"] = glGetUniformLocation(first_program_, "MAX_LIGHTS");
+	uniforms["outline"] = glGetUniformLocation(first_program_, "outline");
+	uniforms["has_diff_tex"] = glGetUniformLocation(first_program_, "has_diff_tex");
+
+	uniforms["spikey_projection_view_model_xform"] = glGetUniformLocation(spikey_program_, "projection_view_model_xform");
+	uniforms["spikey_model_xform"] = glGetUniformLocation(spikey_program_, "model_xform");
+	uniforms["spikey_normal_xform"] = glGetUniformLocation(spikey_program_, "normal_xform");
+	uniforms["spikey_normal_line_length"] = glGetUniformLocation(spikey_program_, "normal_vector_length");
+
+#pragma endregion // Get the uniform locations
 }
 
 #pragma endregion 
 
 #pragma region Texture Loading
-//Load the texture and pass the texture into an unordered map using the texture files' name as the key.
-//The textures need to be in the same folder as the application executable
-
+/*Load the texture and pass the texture into an unordered map using the texture files' name as the key.
+The textures need to be in the same folder as the application executable
+@param The name of the shader file
+*/
 void MyView::
 LoadTexture(std::string textureName)
 {
@@ -204,29 +257,41 @@ LoadTexture(std::string textureName)
 		glBindTexture(GL_TEXTURE_2D, 0);
 		textures[textureName] = texture;
 	}
-
 }
 
 #pragma endregion
+
+void MyView::ResetConsole()
+{
+	system("cls");
+	//Application instructions
+	std::cout << "ABOUT" << std::endl;
+	std::cout << "Spice My Sponza - 3D Graphics Programming ICA1" << std::endl;
+	std::cout << "P4011584 - Frederic Babord 2015 - 2016" << std::endl << std::endl;
+	std::cout << "Submission date: 04th February 2016" << std::endl << std::endl;
+	std::cout << "INSTRUCTIONS" << std::endl;
+	std::cout << "Press F1 to enable camera animation." << std::endl;
+	std::cout << "Press F2 to view the direction of the vertex normals." << std::endl;
+	std::cout << "Press F3 to enable wireframe mode." << std::endl;
+	std::cout << "Press F4 to change rendering mode (Fill, Line, Point)." << std::endl;
+	std::cout << "Press F5 to recompile the shader." << std::endl << std::endl;
+	std::cout << "Press Q to reduce the normal line length." << std::endl;
+	std::cout << "Press E to increase the normal line length." << std::endl;
+	std::cout << "Press Z to reduce the specular intensity smudge factor." << std::endl;
+	std::cout << "Press C to increase the specular intensity smudge factor." << std::endl << std::endl;
+	std::cout << "Press Esc to Close." << std::endl << std::endl;
+	CompileShaders();
+}
 
 void MyView::
 windowViewWillStart(std::shared_ptr<tygra::Window> window)
 {
 	assert(scene_ != nullptr);
 	
-	//Application instructions
-	std::cout << "ABOUT" << std::endl;
-	std::cout << "Spice My Sponza - 3D Graphics Programming ICA1" << std::endl;
-	std::cout << "P4011584 - Frederic Babord 2015 - 2016" << std::endl <<std::endl;
-	std::cout << "INSTRUCTIONS" << std::endl;
-	std::cout << "Press F2 to view the direction of the vertex normals." << std::endl;
-	std::cout << "Press F3 to enable wireframe mode." << std::endl;
-	std::cout << "Press F4 to change rendering mode (Fill, Line, Point)." << std::endl;
-	std::cout << "Press F5 to recompile the shader." << std::endl << std::endl;
-	std::cout << "Press Q to reduce the normal line length." << std::endl;
-	std::cout << "Press E to increase the normal line length." << std::endl << std::endl;
+	
 
-	CompileShaders();
+	ResetConsole();
+	
 	/*
 	Create and fill the vbos and vao in an interleaved manner from the scene data. Interleaving was chosen because
 	the data would arrive to the gpu in a stream that would be in the order it would need for the shader and specific
@@ -237,9 +302,8 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 #pragma region
 	SceneModel::GeometryBuilder builder;
 	std::vector<Vertex> vertices;
-	std::vector<SceneModel::InstanceId> elements;
+	std::vector<unsigned int> elements;
 	const auto& scene_meshes = builder.getAllMeshes();
-
 	for (const auto& scene_mesh : scene_meshes) {
 
 		MeshGL& newMesh = meshes_[scene_mesh.getId()];
@@ -324,92 +388,7 @@ windowViewWillStart(std::shared_ptr<tygra::Window> window)
 
 #pragma endregion // Textures and Lights
 
-#pragma region
-	/*
-	Get the uniform locations of the uniform variables in the shader for each program where the varibale needs to be placed and bind it to a GLuint 
-	inside the unordered map. An unordered map was used because every time a new unifrom Gluint is added it doesn't need to re-order the map. This is
-	also performed on start because the locations of the uniforms wont need to be changed per frame so it will speed up the rendering function as it 
-	doesn't need to perform unnessacary computation.
-	*/
-	uniforms["projection_view_model_xform"] = glGetUniformLocation(first_program_, "projection_view_model_xform");
-	uniforms["model_xform"] = glGetUniformLocation(first_program_, "model_xform");
-	uniforms["vertex_diffuse_colour"] = glGetUniformLocation(first_program_, "vertex_diffuse_colour");
-	uniforms["vertex_ambient_colour"] = glGetUniformLocation(first_program_, "vertex_ambient_colour");
-	uniforms["vertex_spec_colour"] = glGetUniformLocation(first_program_, "vertex_spec_colour");
-	uniforms["vertex_shininess"] = glGetUniformLocation(first_program_, "vertex_shininess");
-	uniforms["is_vertex_shiney"] = glGetUniformLocation(first_program_, "is_vertex_shiney");
-	uniforms["camera_position"] = glGetUniformLocation(first_program_, "camera_position");
-	
-	uniforms["global_ambient_light"] = glGetUniformLocation(first_program_, "global_ambient_light");
 
-	uniforms["MAX_LIGHTS"] = glGetUniformLocation(first_program_, "MAX_LIGHTS");
-	uniforms["outline"] = glGetUniformLocation(first_program_, "outline");
-	uniforms["has_diff_tex"] = glGetUniformLocation(first_program_, "has_diff_tex");
-
-	uniforms["spikey_projection_view_model_xform"] = glGetUniformLocation(spikey_program_, "projection_view_model_xform");
-	uniforms["spikey_model_xform"] = glGetUniformLocation(spikey_program_, "model_xform");
-	uniforms["spikey_normal_xform"] = glGetUniformLocation(spikey_program_, "normal_xform");
-	uniforms["spikey_normal_line_length"] = glGetUniformLocation(spikey_program_, "normal_vector_length");
-
-#pragma endregion // Get the uniform locations
-
-	//GLint blockSize;
-	//GLuint blockIndex = glGetUniformBlockIndex(first_program_, "LightBlock");
-	//glGetActiveUniformBlockiv(first_program_, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
-	//GLubyte * blockBuffer = (GLubyte *)malloc(blockSize);
-	//// Query for the offsets of each block variable
-	//const GLchar *names[] = { "position", "intensity", "range" };
-	//GLuint indices[3];
-	//glGetUniformIndices(first_program_, 3, names, indices);
-	//GLint offset[3];
-	//glGetActiveUniformsiv(first_program_, 3, indices, GL_UNIFORM_OFFSET, offset);
-
-	//GLfloat position[] = { 0.0f, 0.0f, 0.0f };
-	//GLfloat intensity[] = { 1.0f, 1.0f, 0.75f };
-	//GLfloat range = 0.25f;
-
-	//memcpy(blockBuffer + offset[0], position, 3 * sizeof(GLfloat));
-	//memcpy(blockBuffer + offset[1], intensity, 3 * sizeof(GLfloat));
-	//memcpy(blockBuffer + offset[2], &range, sizeof(GLfloat));
-
-	//GLuint uboHandle;
-	//glGenBuffers(1, &uboHandle);
-	//glBindBuffer(GL_UNIFORM_BUFFER, uboHandle);
-	//glBufferData(GL_UNIFORM_BUFFER, blockSize, blockBuffer, GL_DYNAMIC_DRAW);
-
-	//glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, uboHandle);
-
-
-	//for (unsigned int i = 0; i < scene_->getAllLights().size(); ++i)
-	//{
-	//	Light light;
-	//	light.position = scene_->getAllLights()[i].getPosition();
-	//	light.range = scene_->getAllLights()[i].getRange();
-	//	light.intensity = scene_->getAllLights()[i].getIntensity();
-	//	lights.push_back(light);
-	//}
-	//
-
-	
-	/*for (int i = 0; i < scene_->getAllLights().size(); ++i)
-	{
-		lightBlock[i].position = scene_->getAllLights()[i].getPosition();
-		lightBlock[i].intensity = scene_->getAllLights()[i].getIntensity();
-		lightBlock[i].range = scene_->getAllLights()[i].getRange();
-	}
-
-	glBindBuffer(GL_UNIFORM_BUFFER, lightBlock_ubo);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(lightBlock), &lightBlock, GL_STREAM_DRAW);
-
-	glGenBuffers(1, &lightBlock_ubo);
-	glBindBuffer(GL_UNIFORM_BUFFER, lightBlock_ubo);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(lightBlock), nullptr, GL_STREAM_DRAW);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, lightBlock_ubo);
-	glUniformBlockBinding(first_program_, glGetUniformBlockIndex(first_program_, "LightBlock"), 0);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 1, lightBlock_ubo);
-	glUniformBlockBinding(first_program_, glGetUniformBlockIndex(first_program_, "LightBlock"), 1);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 2, lightBlock_ubo);
-	glUniformBlockBinding(first_program_, glGetUniformBlockIndex(first_program_, "LightBlock"), 2);*/
 
 }
 
@@ -529,6 +508,9 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	//Initialised to first element as there is no default constructor for a material
 	SceneModel::Material material = scene_->getAllMaterials()[0];
 
+	/*
+	Populate the material uniform variables and the model uniform variables and then draw sponza normally
+	*/
 	for (const auto& instance : scene_->getAllInstances())
 	{
 		glm::mat4 model_xform = glm::mat4(instance.getTransformationMatrix());
@@ -546,7 +528,8 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 		glUniform3fv(uniforms["vertex_spec_colour"], 1, glm::value_ptr(material.getSpecularColour()));
 		glUniform1f(uniforms["vertex_shininess"], material.getShininess());
 		glUniform1f(uniforms["is_vertex_shiney"], (float)material.isShiny());
-		
+		glUniform1f(uniforms["specular_smudge_factor"], specularSmudge);
+
 		if (material.getDiffuseTexture() != "")
 		{
 			glUniform1f(uniforms["has_diff_tex"], 1);
@@ -607,15 +590,14 @@ windowViewRender(std::shared_ptr<tygra::Window> window)
 	normal vector. The geomerty shader was used to create the toggelable lines because it was the cleanest method 
 	that I found after reaserching how to do this without defaulting to an older version of OpenGL due to depreciated 
 	functions. I have also found there is more control over how the lines can be drawn and how they are represented in 
-	this manner with a simpler and more understanding workflow through the opengl pipeline.
+	this manner with a simpler and more understanding workflow through the opengl pipeline. Switch shader programms so 
+	a normal debug version of the shaders can be used for the next render call
 	*/
 	glUseProgram(spikey_program_);
 	glUniform1f(uniforms["spikey_normal_line_length"], normalLineLength);
+
 	if (spikey)
 	{
-		//Switch shader programms so a normal debug version of the shaders can be used for the next render call
-		
-
 		for (const auto& instance : scene_->getAllInstances())
 		{
 			glm::mat4 model_xform = glm::mat4(instance.getTransformationMatrix());

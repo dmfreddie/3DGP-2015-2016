@@ -1,3 +1,7 @@
+User ID: P4011584
+Name: Frederic Babord
+Tested on: SCM-69335
+
 Spice My Sponza
 
 Original tutorial framework developed by Tyrone Davison <t.p.davison@tees.ac.uk>

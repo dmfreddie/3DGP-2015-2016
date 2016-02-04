@@ -9,6 +9,7 @@ out vec3 vertexNormal;
 
 void main(void)
 {	
+	//Convert the vertex normal into world space
 	vertexNormal = mat3(model_xform) *  vertex_normal;
 
 	gl_Position = vec4(vertex_position, 1.0);

@@ -20,11 +20,13 @@ public:
     void setScene(std::shared_ptr<const SceneModel::Context> scene);
 
 #pragma region My External Faceing Function Definitions
-	void CompileShaders();
+
+	void ResetConsole();
 	void EnableSpikey();
 	void RenderMode();
 	void ToggleOutlineMode();
 	void AddToLength(float val_);
+	void AddToSpecSmudge(float val_);
 #pragma endregion
 
 private:
@@ -33,6 +35,8 @@ private:
 
 	void CompileShader(std::string shaderFileName, GLenum shaderType, GLuint& shaderVariable);
 	
+	void CompileShaders();
+
 	bool CheckLinkStatus(GLuint shaderProgram);
 
 	std::string GenerateUniforms(GLuint program, std::string name_){}
@@ -46,6 +50,8 @@ private:
     void windowViewDidStop(std::shared_ptr<tygra::Window> window) override;
     
     void windowViewRender(std::shared_ptr<tygra::Window> window) override;
+
+	void Getuniforms();
 
 #pragma endregion
 
@@ -116,21 +122,11 @@ private:
 	bool spikey = false;
 	bool outlineMode = false;
 
+	float specularSmudge = 2.0f;
 	float normalLineLength = 1.0f;
 	int windowWidth, windowHeight = 0;
 	
 	RenderMode_ currentRenderMode = RenderMode_::Face;
 #pragma endregion
-
-
-	struct LightBlock
-	{
-		glm::vec3 position;
-		glm::vec3 intensity;
-		float range;
-	};
-
-	LightBlock *lightBlock = new LightBlock[22];
-	GLuint lightBlock_ubo;
 
 };

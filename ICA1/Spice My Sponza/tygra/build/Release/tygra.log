@@ -1,0 +1,35 @@
+﻿Build started 04/02/2016 18:22:34.
+     1>Project "\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\tygra\tygra.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Iinclude /I"\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external/include" /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _LIB /D _UNICODE /D UNICODE /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"build\Release\\" /Fd"lib\Win32\v120\Release\tygra.pdb" /Gd /TP /analyze- /errorReport:prompt src\FileHelper.cpp src\Window.cpp
+         FileHelper.cpp
+         Window.cpp
+         No target GL version declared, defaulting to GL 3.3
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\Lib.exe /OUT:"lib\Win32\v120\Release\tygra.lib" /NOLOGO build\Release\FileHelper.obj
+         build\Release\Window.obj
+         Window.obj : MSIL .netmodule or module compiled with /GL found; restarting link with /LTCG; add /LTCG to the link command line to improve linker performance
+         tygra.vcxproj -> \\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\tygra\lib\Win32\v120\Release\tygra.lib
+       PostBuildEvent:
+         xcopy /E /S /I /Y "doc" "\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\doc"
+         xcopy /E /S /I /Y "include" "\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\include"
+         xcopy /E /S /I /Y "lib" "\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\external\lib"
+         :VCEnd
+         0 File(s) copied
+         File not found - doc
+         include\tygra\FileHelper.hpp
+         include\tygra\Image.hpp
+         include\tygra\Window.hpp
+         include\tygra\WindowControlDelegate.hpp
+         include\tygra\WindowViewDelegate.hpp
+         5 File(s) copied
+         lib\Win32\v120\Debug\tygra.pdb
+         lib\Win32\v120\Debug\tygra.lib
+         lib\Win32\v120\Release\tygra.pdb
+         lib\Win32\v120\Release\tygra.lib
+         4 File(s) copied
+     1>Done Building Project "\\scm-home\P4011584\GitHub\3DGP-2015-2016\ICA1\Spice My Sponza\tygra\tygra.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:19.46

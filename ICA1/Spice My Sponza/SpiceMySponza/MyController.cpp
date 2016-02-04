@@ -113,11 +113,8 @@ windowControlKeyboardChanged(std::shared_ptr<tygra::Window> window,
 	//the outline mode, render mode and whether or not to display the normal vector lines
 	switch (key_index)
 	{
-	case 'Q':
-		view_->AddToLength(-0.1f);
-		break;
-	case 'E':
-		view_->AddToLength(0.1f);
+	case tygra::kWindowKeyF1:
+		scene_->toggleCameraAnimation();
 		break;
 	case tygra::kWindowKeyF2:
 		view_->EnableSpikey();
@@ -129,14 +126,26 @@ windowControlKeyboardChanged(std::shared_ptr<tygra::Window> window,
 		view_->RenderMode();
 		break;
 	case tygra::kWindowKeyF5:
-		view_->CompileShaders();
+		view_->ResetConsole();
 		break;
-	//Query tyrone about this function
-	/*case tygra::kWindowKeyF6:
-		scene_->toggleCameraAnimation();
-		break;*/
 	case tygra::kWindowKeyEsc:
 		window->close();
+		break;
+	}
+
+	switch (key_index)
+	{
+	case 'Q':
+		view_->AddToLength(-0.1f);
+		break;
+	case 'E':
+		view_->AddToLength(0.1f);
+		break;
+	case 'Z':
+		view_->AddToSpecSmudge(-1.f);
+		break;
+	case 'C':
+		view_->AddToSpecSmudge(1.f);
 		break;
 	}
 }
