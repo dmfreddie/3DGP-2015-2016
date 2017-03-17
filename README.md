@@ -1,4 +1,4 @@
-# 3D Graphics Programming
+# 3D Graphics Programming (COM2062-N)
 
 ## Spice My Sponza - ICA1
 
